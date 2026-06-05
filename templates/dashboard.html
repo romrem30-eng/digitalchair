@@ -1,0 +1,153 @@
+{% extends 'base/base.html' %}
+
+{% block content %}
+
+<div class="row g-4">
+
+    <div class="col-md-3">
+
+        <div class="stat-card">
+
+            <div class="stat-label">
+                Преподаватели
+            </div>
+
+            <div class="stat-value">
+                {{ teachers_count }}
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="col-md-3">
+
+        <div class="stat-card">
+
+            <div class="stat-label">
+                Дисциплины
+            </div>
+
+            <div class="stat-value">
+                {{ subjects_count }}
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="col-md-3">
+
+        <div class="stat-card">
+
+            <div class="stat-label">
+                Нагрузки
+            </div>
+
+            <div class="stat-value">
+                {{ workloads_count }}
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="col-md-3">
+
+        <div class="stat-card">
+
+            <div class="stat-label">
+                Студенты
+            </div>
+
+            <div class="stat-value">
+                {{ students_count }}
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<div class="section-card">
+
+    <div class="section-title">
+        Загрузка преподавателей
+    </div>
+
+    <div class="workload-item">
+
+        <div class="workload-header">
+
+            <span>
+                Иванов И.И.
+            </span>
+
+            <span>
+                620 / 900 ч
+            </span>
+
+        </div>
+
+        <div class="progress">
+
+            <div class="progress-bar bg-primary"
+                 style="width: 68%;">
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="workload-item">
+
+        <div class="workload-header">
+
+            <span>
+                Петров А.С.
+            </span>
+
+            <span>
+                480 / 900 ч
+            </span>
+
+        </div>
+
+        <div class="progress">
+
+            <div class="progress-bar bg-success"
+                 style="width: 52%;">
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="workload-item">
+
+        <div class="workload-header">
+
+            <span>
+                Сидоров Н.В.
+            </span>
+
+            <span>
+                820 / 900 ч
+            </span>
+
+        </div>
+
+        <div class="progress">
+
+            <div class="progress-bar bg-danger"
+                 style="width: 91%;">
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

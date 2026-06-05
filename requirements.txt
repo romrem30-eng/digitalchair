@@ -1,0 +1,12 @@
+Django==5.2
+psycopg2-binary
+python-dotenv
+django-crispy-forms
+crispy-bootstrap5
+pillow
+openpyxl
+python-docx
+reportlab
+aiogram
+gunicorn
+whitenoise
