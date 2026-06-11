@@ -1,174 +1,30 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
+{% extends 'base/base.html' %}
 
-    <meta charset="UTF-8">
+{% block title %}{{ title }} | DigitalChair{% endblock %}
 
-    <title>{{ title }} | DigitalChair</title>
+{% block page_title %}{{ title }}{% endblock %}
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-          rel="stylesheet">
+{% block page_subtitle %}
+    {% if description %}
+        <p class="app-page-subtitle">{{ description }}</p>
+    {% endif %}
+{% endblock %}
 
-</head>
+{% block page_actions %}
+    <a href="/reports/" class="btn btn-outline-secondary">Центр отчетов</a>
+{% endblock %}
 
-<body style="background:#f3f4f6;">
-
-<div class="d-flex">
-
-    <div style="
-        width:260px;
-        min-height:100vh;
-        {% if request.user.role == 'ADMIN' %}
-        background:#111827;
-        {% elif request.user.role == 'HEAD' %}
-        background:#1e293b;
-        {% elif request.user.role == 'STUDY_MASTER' %}
-        background:#334155;
-        {% else %}
-        background:#0f172a;
-        {% endif %}
-        color:white;
-        padding:30px;
-        position:relative;
-    ">
-
-        <h3 style="font-weight:700;">
-
-            DigitalChair
-
-        </h3>
-
-        <hr style="border-color:rgba(255,255,255,0.1);">
-
-        <p>
-
-            <a href="{{ dashboard_url }}"
-               style="color:white;text-decoration:none;">
-
-                Главная
-
-            </a>
-
-        </p>
-
-        <p style="opacity:0.7;margin-bottom:8px;">
-
-            Отчеты
-
-        </p>
-
-        {% for link in report_links %}
-            <p style="margin-bottom:10px;">
-
+{% block content %}
+    <div class="section-card mb-4">
+        <div class="d-flex flex-wrap gap-2">
+            {% for link in report_links %}
                 <a href="{{ link.url }}"
-                   style="color:white;text-decoration:none;{% if active_report == link.key %}font-weight:700;{% endif %}">
-
+                   class="btn {% if active_report == link.key %}btn-primary{% else %}btn-outline-primary{% endif %}">
                     {{ link.title }}
-
                 </a>
-
-            </p>
-        {% endfor %}
-
-        <div style="
-            position:absolute;
-            bottom:30px;
-            left:30px;
-            right:30px;
-        ">
-
-            <hr style="border-color:rgba(255,255,255,0.1);">
-
-            <div class="d-flex align-items-center">
-
-                <div style="
-                    width:48px;
-                    height:48px;
-                    border-radius:50%;
-                    background:#3b82f6;
-                    display:flex;
-                    align-items:center;
-                    justify-content:center;
-                    font-weight:700;
-                    font-size:18px;
-                    margin-right:12px;
-                ">
-
-                    {{ request.user.email|first|upper }}
-
-                </div>
-
-                <div>
-
-                    <div style="
-                        font-weight:600;
-                        font-size:14px;
-                    ">
-
-                        {{ request.user.email }}
-
-                    </div>
-
-                    <div style="
-                        font-size:12px;
-                        opacity:0.7;
-                    ">
-
-                        {{ request.user.role }}
-
-                    </div>
-
-                </div>
-
-            </div>
-
-            <a href="/logout/"
-               class="btn btn-outline-light w-100 mt-3">
-
-                Выйти
-
-            </a>
-
+            {% endfor %}
         </div>
-
     </div>
 
-    <div class="p-5 w-100">
-
-        <div class="d-flex justify-content-between align-items-start gap-3 mb-4">
-
-            <div>
-
-                <h1 style="font-weight:700;">
-
-                    {{ title }}
-
-                </h1>
-
-                {% if description %}
-                    <p style="color:#6b7280;" class="mb-0">
-
-                        {{ description }}
-
-                    </p>
-                {% endif %}
-
-            </div>
-
-            <a href="/reports/"
-               class="btn btn-outline-secondary">
-
-                Центр отчетов
-
-            </a>
-
-        </div>
-
-        {% block content %}{% endblock %}
-
-    </div>
-
-</div>
-
-</body>
-</html>
+    {% block report_content %}{% endblock %}
+{% endblock %}

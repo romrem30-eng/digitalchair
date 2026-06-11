@@ -1,3 +1,4 @@
+from datetime import timedelta
 from urllib.parse import quote
 
 import pyotp
@@ -10,7 +11,11 @@ from django.contrib.auth.decorators import user_passes_test
 from django.shortcuts import get_object_or_404
 from django.shortcuts import redirect
 from django.shortcuts import render
+from django.utils import timezone
 
+from apps.notifications.telegram import generate_telegram_bind_code
+from apps.notifications.telegram import TELEGRAM_BIND_CODE_TTL_MINUTES
+from apps.notifications.telegram import unbind_telegram_account
 from apps.users.models import User
 
 
@@ -262,3 +267,64 @@ def logout_view(request):
     logout(request)
 
     return redirect('/login/')
+
+
+@login_required(login_url='/login/')
+def telegram_settings_view(request):
+
+    bind_code = request.user.telegram_bind_code
+    bind_expires_at = None
+
+    if request.user.telegram_bind_code_created_at:
+
+        bind_expires_at = (
+            request.user.telegram_bind_code_created_at
+            + timedelta(
+                minutes=TELEGRAM_BIND_CODE_TTL_MINUTES
+            )
+        )
+
+    if request.method == 'POST':
+
+        if 'generate_code' in request.POST:
+
+            bind_code = generate_telegram_bind_code(
+                request.user
+            )
+
+            bind_expires_at = (
+                request.user.telegram_bind_code_created_at
+                + timedelta(
+                    minutes=TELEGRAM_BIND_CODE_TTL_MINUTES
+                )
+            )
+
+            messages.success(
+                request,
+                'Новый код привязки сгенерирован.'
+            )
+
+            return redirect('/telegram/')
+
+        if 'unbind_telegram' in request.POST:
+
+            unbind_telegram_account(
+                request.user
+            )
+
+            messages.success(
+                request,
+                'Telegram-аккаунт отвязан.'
+            )
+
+            return redirect('/telegram/')
+
+    return render(
+        request,
+        'notifications/telegram_settings.html',
+        {
+            'telegram_id': request.user.telegram_id,
+            'bind_code': bind_code,
+            'bind_expires_at': bind_expires_at,
+        }
+    )

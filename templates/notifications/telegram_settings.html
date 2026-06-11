@@ -1,0 +1,76 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Telegram | DigitalChair{% endblock %}
+
+{% block page_title %}Telegram{% endblock %}
+
+{% block page_subtitle %}
+    <p class="app-page-subtitle">Привязка аккаунта DigitalChair к Telegram-боту для получения уведомлений и работы с поручениями.</p>
+{% endblock %}
+
+{% block content %}
+    <div class="row g-4">
+        <div class="col-lg-6">
+            <div class="section-card h-100">
+                <div class="section-title">Статус привязки</div>
+
+                <dl class="row mb-4">
+                    <dt class="col-sm-4 text-muted">Статус</dt>
+                    <dd class="col-sm-8">
+                        {% if telegram_id %}
+                            <span class="badge bg-success">Привязан</span>
+                        {% else %}
+                            <span class="badge bg-secondary">Не привязан</span>
+                        {% endif %}
+                    </dd>
+
+                    <dt class="col-sm-4 text-muted">Telegram ID</dt>
+                    <dd class="col-sm-8">
+                        {% if telegram_id %}
+                            {{ telegram_id }}
+                        {% else %}
+                            <span class="text-muted">Не указан</span>
+                        {% endif %}
+                    </dd>
+                </dl>
+
+                <div class="d-flex gap-2">
+                    <form method="post">
+                        {% csrf_token %}
+                        <button type="submit" name="generate_code" value="1" class="btn btn-primary">
+                            Сгенерировать код
+                        </button>
+                    </form>
+
+                    {% if telegram_id %}
+                        <form method="post">
+                            {% csrf_token %}
+                            <button type="submit" name="unbind_telegram" value="1" class="btn btn-outline-danger">
+                                Отвязать
+                            </button>
+                        </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="section-card h-100">
+                <div class="section-title">Привязка через бота</div>
+
+                {% if bind_code %}
+                    <div class="alert alert-primary">
+                        Одноразовый код: <strong>{{ bind_code }}</strong>
+                    </div>
+                    <p class="mb-2">Отправьте боту команду:</p>
+                    <pre class="p-3 rounded bg-light border mb-3">/bind {{ bind_code }}</pre>
+                    {% if bind_expires_at %}
+                        <p class="text-muted mb-0">Код действителен до {{ bind_expires_at|date:"d.m.Y H:i" }}.</p>
+                    {% endif %}
+                {% else %}
+                    <p class="text-muted mb-0">Сгенерируйте одноразовый код, затем отправьте его боту командой <code>/bind &lt;код&gt;</code>.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endblock %}

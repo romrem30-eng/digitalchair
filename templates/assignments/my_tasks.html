@@ -1,77 +1,61 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <title>Мои поручения</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body style="background:#f3f4f6;">
-<div class="d-flex">
-    <div style="width:260px;min-height:100vh;background:#0f172a;color:white;padding:30px;position:relative;">
-        <h3 style="font-weight:700;">DigitalChair</h3>
-        <hr style="border-color:rgba(255,255,255,0.1);">
-        <p><a href="/teacher-dashboard/" style="color:white;text-decoration:none;">Главная</a></p>
-        <p><a href="/my-workload/" style="color:white;text-decoration:none;">Моя нагрузка</a></p>
-        <p><a href="/my-assignments/" style="color:white;text-decoration:none;font-weight:700;">Мои поручения</a></p>
-        <p><a href="/notifications/" style="color:white;text-decoration:none;">Уведомления</a></p>
-        <div style="position:absolute;bottom:30px;left:30px;right:30px;">
-            <hr style="border-color:rgba(255,255,255,0.1);">
-            <div class="d-flex align-items-center">
-                <div style="width:48px;height:48px;border-radius:50%;background:#3b82f6;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;margin-right:12px;">{{ request.user.email|first|upper }}</div>
-                <div><div style="font-weight:600;font-size:14px;">{{ request.user.email }}</div><div style="font-size:12px;opacity:0.7;">{{ request.user.role }}</div></div>
-            </div>
-            <a href="/logout/" class="btn btn-outline-light w-100 mt-3">Выйти</a>
-        </div>
-    </div>
-    <div class="p-5 w-100">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <div>
-                <h1 style="font-weight:700;">Мои поручения</h1>
-                <p style="color:#6b7280;">{% if teacher %}{{ teacher.full_name }}{% else %}Профиль преподавателя не найден.{% endif %}</p>
-            </div>
-            <a href="/notifications/" class="btn btn-outline-secondary">Уведомления</a>
-        </div>
+{% extends 'base/base.html' %}
 
-        {% if messages %}
-            {% for message in messages %}
-                <div class="alert alert-{{ message.tags|default:'info' }} mb-3">{{ message }}</div>
-            {% endfor %}
+{% block title %}Мои поручения | DigitalChair{% endblock %}
+
+{% block page_title %}Мои поручения{% endblock %}
+
+{% block page_subtitle %}
+    <p class="app-page-subtitle">
+        {% if teacher %}
+            {{ teacher.full_name }}
+        {% else %}
+            Профиль преподавателя не найден.
         {% endif %}
+    </p>
+{% endblock %}
 
-        <div class="card border-0 shadow-sm">
-            <div class="card-body">
-                <table class="table align-middle">
-                    <thead>
-                    <tr>
-                        <th>Название</th>
-                        <th>Описание</th>
-                        <th>Срок</th>
-                        <th>Статус</th>
-                        <th>Приоритет</th>
-                        <th class="text-end">Действия</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    {% for task in tasks %}
+{% block page_actions %}
+    <a href="/notifications/" class="btn btn-outline-secondary">Уведомления</a>
+{% endblock %}
+
+{% block content %}
+    <div class="table-card">
+        <div class="table-responsive">
+            <table class="table align-middle">
+                <thead>
+                <tr>
+                    <th>Название</th>
+                    <th>Описание</th>
+                    <th>Срок</th>
+                    <th>Статус</th>
+                    <th>Приоритет</th>
+                    <th class="text-end">Действия</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for task in tasks %}
                     <tr {% if task.is_overdue %}class="table-danger"{% endif %}>
-                        <td style="font-weight:600;">
+                        <td class="fw-semibold">
                             {{ task.title }}
-                            {% if task.is_overdue %}<span class="badge bg-danger ms-2">Просрочено</span>{% endif %}
+                            {% if task.is_overdue %}
+                                <span class="badge bg-danger ms-2">Просрочено</span>
+                            {% endif %}
                         </td>
                         <td>{{ task.description|truncatechars:100 }}</td>
                         <td>{{ task.due_date|date:"d.m.Y" }}</td>
                         <td>{{ task.get_status_display }}</td>
                         <td>{{ task.get_priority_display }}</td>
-                        <td class="text-end"><a href="/my-assignments/{{ task.id }}/" class="btn btn-sm btn-outline-primary">Открыть</a></td>
+                        <td class="text-end">
+                            <a href="/my-assignments/{{ task.id }}/" class="btn btn-sm btn-outline-primary">Открыть</a>
+                        </td>
                     </tr>
-                    {% empty %}
-                    <tr><td colspan="6" class="text-center text-muted py-4">Поручений пока нет.</td></tr>
-                    {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+                {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-4">Поручений пока нет.</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
         </div>
     </div>
-</div>
-</body>
-</html>
+{% endblock %}

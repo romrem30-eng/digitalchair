@@ -3,289 +3,354 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>DigitalChair</title>
-
+    <title>{% block title %}DigitalChair{% endblock %}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
           rel="stylesheet">
-
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
-          rel="stylesheet">
-
     <style>
-
-        * {
-            font-family: 'Inter', sans-serif;
-        }
-
         body {
+            margin: 0;
             background: #eef2f7;
-            overflow-x: hidden;
+            color: #0f172a;
+            font-family: "Segoe UI", Arial, sans-serif;
         }
 
-        .sidebar {
-            height: 100vh;
-            background: linear-gradient(180deg, #1c2434 0%, #111827 100%);
-            color: white;
-            padding: 24px 18px;
+        .app-shell {
+            min-height: 100vh;
+            display: flex;
+        }
+
+        .app-sidebar {
+            width: 272px;
+            min-height: 100vh;
             position: fixed;
-            width: 260px;
-            box-shadow: 0 0 30px rgba(0,0,0,0.15);
+            top: 0;
+            left: 0;
+            display: flex;
+            flex-direction: column;
+            padding: 28px 20px;
+            background: linear-gradient(180deg, {{ ui_theme_color|default:"#111827" }} 0%, #0f172a 100%);
+            color: #e2e8f0;
+            box-shadow: 0 10px 40px rgba(15, 23, 42, 0.18);
         }
 
-        .logo {
-            font-size: 26px;
+        .app-logo {
+            margin: 0 0 28px;
+            font-size: 1.65rem;
             font-weight: 700;
-            margin-bottom: 40px;
-            text-align: center;
-            letter-spacing: 0.5px;
+            color: #ffffff;
         }
 
-        .logo span {
+        .app-logo span {
             color: #60a5fa;
         }
 
-        .sidebar-section {
-            color: #7f8ea3;
-            font-size: 12px;
+        .app-role {
+            margin-bottom: 22px;
+            padding: 12px 14px;
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.06);
+        }
+
+        .app-role-label {
+            display: block;
+            margin-bottom: 4px;
+            font-size: 0.75rem;
+            color: #94a3b8;
             text-transform: uppercase;
-            margin-top: 25px;
-            margin-bottom: 10px;
-            padding-left: 12px;
-            letter-spacing: 1px;
+            letter-spacing: 0.04em;
         }
 
-        .sidebar a {
+        .app-role-value {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #ffffff;
+        }
+
+        .app-nav {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .app-nav-link {
             display: flex;
             align-items: center;
-            gap: 10px;
-            color: #d5dde7;
-            text-decoration: none;
-            padding: 14px 16px;
-            border-radius: 14px;
-            margin-bottom: 8px;
-            transition: 0.2s ease;
-            font-weight: 500;
-        }
-
-        .sidebar a:hover {
-            background: rgba(255,255,255,0.08);
-            transform: translateX(4px);
-            color: white;
-        }
-
-        .sidebar a.active {
-            background: linear-gradient(90deg, #2563eb 0%, #3b82f6 100%);
-            color: white;
-            box-shadow: 0 5px 15px rgba(59,130,246,0.35);
-        }
-
-        .main-content {
-            margin-left: 260px;
-            padding: 30px;
-        }
-
-        .topbar {
-            background: white;
-            border-radius: 20px;
-            padding: 18px 24px;
-            margin-bottom: 25px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.04);
-
-            display: flex;
             justify-content: space-between;
-            align-items: center;
+            padding: 12px 14px;
+            border-radius: 14px;
+            color: #dbe4f0;
+            text-decoration: none;
+            transition: background-color 0.2s ease, transform 0.2s ease;
         }
 
-        .topbar-title h2 {
-            margin: 0;
-            font-size: 28px;
+        .app-nav-link:hover {
+            color: #ffffff;
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateX(3px);
+        }
+
+        .app-nav-link.active {
+            color: #ffffff;
+            background: linear-gradient(90deg, #2563eb 0%, #3b82f6 100%);
+            box-shadow: 0 10px 24px rgba(37, 99, 235, 0.3);
+        }
+
+        .app-nav-badge {
+            min-width: 28px;
+            padding: 2px 8px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.18);
+            color: #ffffff;
+            text-align: center;
+            font-size: 0.75rem;
             font-weight: 700;
-            color: #111827;
         }
 
-        .topbar-title p {
-            margin: 0;
-            color: #6b7280;
+        .app-sidebar-footer {
+            margin-top: auto;
+            padding-top: 22px;
+            border-top: 1px solid rgba(148, 163, 184, 0.18);
         }
 
-        .profile-box {
+        .app-user {
             display: flex;
             align-items: center;
-            gap: 14px;
-            background: #f3f6fb;
-            padding: 10px 16px;
-            border-radius: 14px;
+            gap: 12px;
+            margin-bottom: 18px;
         }
 
-        .avatar {
-            width: 42px;
-            height: 42px;
+        .app-user-avatar {
+            width: 44px;
+            height: 44px;
             border-radius: 50%;
-            background: linear-gradient(135deg, #2563eb, #60a5fa);
-
             display: flex;
             align-items: center;
             justify-content: center;
-
-            color: white;
+            background: linear-gradient(135deg, #3b82f6, #60a5fa);
+            color: #ffffff;
             font-weight: 700;
+        }
+
+        .app-user-email {
+            color: #ffffff;
+            font-weight: 600;
+            font-size: 0.92rem;
+            word-break: break-word;
+        }
+
+        .app-user-role {
+            font-size: 0.78rem;
+            color: #94a3b8;
+        }
+
+        .app-main {
+            flex: 1;
+            margin-left: 272px;
+            padding: 28px;
+        }
+
+        .app-page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 16px;
+            margin-bottom: 24px;
+            padding: 24px 28px;
+            border: 1px solid #dbe4f0;
+            border-radius: 20px;
+            background: #ffffff;
+            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.05);
+        }
+
+        .app-page-title {
+            margin: 0 0 6px;
+            font-size: 2rem;
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        .app-page-subtitle {
+            margin: 0;
+            max-width: 780px;
+            color: #64748b;
+        }
+
+        .stat-card,
+        .section-card {
+            border: 1px solid #dbe4f0;
+            border-radius: 18px;
+            background: #ffffff;
+            box-shadow: 0 10px 28px rgba(15, 23, 42, 0.05);
         }
 
         .stat-card {
-            background: white;
-            border-radius: 24px;
-            padding: 24px;
-            box-shadow: 0 8px 24px rgba(15,23,42,0.05);
-            border: 1px solid #e5e7eb;
-            transition: 0.2s ease;
+            padding: 22px 24px;
             height: 100%;
         }
 
-        .stat-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 12px 30px rgba(15,23,42,0.08);
-        }
-
         .stat-label {
-            color: #6b7280;
-            font-size: 14px;
             margin-bottom: 10px;
-            font-weight: 500;
+            color: #64748b;
+            font-size: 0.92rem;
         }
 
         .stat-value {
-            font-size: 38px;
+            font-size: 2rem;
             font-weight: 700;
-            color: #111827;
+            color: #0f172a;
         }
 
         .section-card {
-            background: white;
-            border-radius: 24px;
             padding: 24px;
-            margin-top: 24px;
-            box-shadow: 0 8px 24px rgba(15,23,42,0.05);
-            border: 1px solid #e5e7eb;
         }
 
         .section-title {
-            font-size: 20px;
+            margin-bottom: 18px;
+            font-size: 1.1rem;
             font-weight: 700;
-            margin-bottom: 20px;
-            color: #111827;
+            color: #0f172a;
         }
 
-        .workload-item {
-            margin-bottom: 20px;
+        .table-card {
+            border: 1px solid #dbe4f0;
+            border-radius: 18px;
+            background: #ffffff;
+            box-shadow: 0 10px 28px rgba(15, 23, 42, 0.05);
+            overflow: hidden;
         }
 
-        .workload-header {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 8px;
+        .table-card .table {
+            margin-bottom: 0;
+        }
+
+        .table-card .table thead th {
+            border-bottom-width: 1px;
+            color: #475569;
             font-weight: 600;
+            background: #f8fafc;
         }
 
-        .progress {
-            height: 14px;
-            border-radius: 999px;
-            background: #e5e7eb;
+        .table-card .table tbody td {
+            vertical-align: middle;
         }
 
-        .progress-bar {
-            border-radius: 999px;
+        .soft-list {
+            margin: 0;
+            padding: 0;
+            list-style: none;
         }
 
+        .soft-list li {
+            padding: 14px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .soft-list li:last-child {
+            border-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .soft-list li:first-child {
+            padding-top: 0;
+        }
+
+        .app-toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        @media (max-width: 991.98px) {
+            .app-shell {
+                display: block;
+            }
+
+            .app-sidebar {
+                position: static;
+                width: auto;
+                min-height: auto;
+            }
+
+            .app-main {
+                margin-left: 0;
+                padding: 20px;
+            }
+
+            .app-page-header {
+                flex-direction: column;
+            }
+        }
     </style>
+    {% block extra_head %}{% endblock %}
 </head>
 <body>
 
-<div class="sidebar">
+{% if request.user.is_authenticated %}
+    <div class="app-shell">
+        <aside class="app-sidebar">
+            <h1 class="app-logo">Digital<span>Chair</span></h1>
 
-    <div class="logo">
-        Digital<span>Chair</span>
-    </div>
-
-    <div class="sidebar-section">
-        Главное
-    </div>
-
-    <a href="/" class="active">
-        🏠 Dashboard
-    </a>
-
-    <div class="sidebar-section">
-        Кафедра
-    </div>
-
-    <a href="#">
-        👨‍🏫 Teachers
-    </a>
-
-    <a href="#">
-        📚 Subjects
-    </a>
-
-    <a href="#">
-        📋 Workload
-    </a>
-
-    <a href="#">
-        ✅ Assignments
-    </a>
-
-    <a href="#">
-        📊 Reports
-    </a>
-
-</div>
-
-<div class="main-content">
-
-    <div class="topbar">
-
-        <div class="topbar-title">
-
-            <h2>DigitalChair ERP</h2>
-
-            <p>
-                Система автоматизации кафедры
-            </p>
-
-        </div>
-
-        <div class="profile-box">
-
-            <div class="avatar">
-                A
+            <div class="app-role">
+                <span class="app-role-label">Роль</span>
+                <span class="app-role-value">{{ ui_role_label }}</span>
             </div>
 
-            <div>
+            <nav class="app-nav">
+                {% for item in ui_navigation_items %}
+                    <a href="{{ item.url }}"
+                       class="app-nav-link{% if item.is_active %} active{% endif %}">
+                        <span>{{ item.label }}</span>
+                        {% if item.badge %}
+                            <span class="app-nav-badge">{{ item.badge }}</span>
+                        {% endif %}
+                    </a>
+                {% endfor %}
+            </nav>
 
-                <strong>
-                    Administrator
-                </strong>
-
-                <div style="font-size:13px;color:#6b7280;">
-
-                    System Access
-
+            <div class="app-sidebar-footer">
+                <div class="app-user">
+                    <div class="app-user-avatar">
+                        {{ request.user.email|first|upper }}
+                    </div>
+                    <div>
+                        <div class="app-user-email">{{ request.user.email }}</div>
+                        <div class="app-user-role">{{ request.user.role }}</div>
+                    </div>
                 </div>
 
+                <a href="/logout/" class="btn btn-outline-light w-100">Выйти</a>
             </div>
+        </aside>
 
-        </div>
+        <main class="app-main">
+            <header class="app-page-header">
+                <div>
+                    <h1 class="app-page-title">{% block page_title %}DigitalChair{% endblock %}</h1>
+                    {% block page_subtitle %}
+                        {% if description %}
+                            <p class="app-page-subtitle">{{ description }}</p>
+                        {% endif %}
+                    {% endblock %}
+                </div>
 
+                <div class="app-toolbar">
+                    {% block page_actions %}{% endblock %}
+                </div>
+            </header>
+
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags|default:'info' }} mb-3">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+
+            {% block content %}{% endblock %}
+        </main>
     </div>
-
-    {% block content %}
-    {% endblock %}
-
-</div>
+{% else %}
+    {% block anonymous_content %}{% endblock %}
+{% endif %}
 
 </body>
 </html>

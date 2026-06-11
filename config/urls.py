@@ -34,6 +34,7 @@ from apps.notifications.views import (
 from apps.users.views import (
     login_view,
     logout_view,
+    telegram_settings_view,
     totp_setup_view,
     totp_verify_view
 )
@@ -113,6 +114,10 @@ urlpatterns = [
     path(
         'notifications/',
         notification_center_view
+    ),
+    path(
+        'telegram/',
+        telegram_settings_view
     ),
     path(
         'reports/',

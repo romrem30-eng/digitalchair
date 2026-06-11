@@ -9,6 +9,7 @@ from django.shortcuts import render
 from django.utils import timezone
 from django.views.decorators.cache import never_cache
 
+from apps.assignments.models import Task
 from apps.core.forms import ImportUploadForm
 from apps.core.forms import StudentGroupForm
 from apps.core.forms import SubjectForm
@@ -25,6 +26,9 @@ from apps.core.models import ImportLog
 from apps.core.models import Subject
 from apps.core.models import Teacher
 from apps.core.models import WorkloadPlan
+from apps.notifications.models import Notification
+from apps.notifications.telegram import notify_workload_approved
+from apps.users.models import User
 from apps.workload.models import WorkloadAssignment
 
 
@@ -190,6 +194,212 @@ def build_distribution_context(plan, form):
     }
 
 
+def get_reference_academic_year():
+
+    academic_year = WorkloadPlan.objects.order_by(
+        '-created_at'
+    ).values_list(
+        'academic_year',
+        flat=True
+    ).first()
+
+    if academic_year:
+
+        return academic_year
+
+    return WorkloadAssignment.objects.order_by(
+        '-created_at'
+    ).values_list(
+        'academic_year',
+        flat=True
+    ).first() or ''
+
+
+def build_head_dashboard_context():
+
+    today = timezone.localdate()
+
+    active_tasks = Task.objects.exclude(
+        status__in=(
+            Task.Statuses.COMPLETED,
+            Task.Statuses.CANCELLED,
+        )
+    )
+
+    teacher_load_rows = sorted(
+        build_teacher_load_data(
+            Teacher.objects.select_related('user').order_by('full_name'),
+            get_reference_academic_year()
+        ),
+        key=lambda row: (
+            row['progress'],
+            row['current_hours'],
+        ),
+        reverse=True
+    )[:6]
+
+    return {
+        'teachers_count': Teacher.objects.count(),
+        'active_tasks_count': active_tasks.count(),
+        'overdue_tasks_count': active_tasks.filter(
+            due_date__lt=today
+        ).count(),
+        'workload_plans_count': WorkloadPlan.objects.count(),
+        'nearest_deadlines': active_tasks.select_related(
+            'teacher'
+        ).order_by(
+            'due_date',
+            '-created_at'
+        )[:5],
+        'teacher_load_rows': teacher_load_rows,
+    }
+
+
+def build_study_dashboard_context():
+
+    return {
+        'teachers_count': Teacher.objects.count(),
+        'subjects_count': Subject.objects.count(),
+        'groups_count': StudentGroup.objects.count(),
+        'workload_plans_count': WorkloadPlan.objects.count(),
+        'recent_imports': ImportLog.objects.select_related(
+            'user'
+        ).order_by(
+            '-created_at'
+        )[:5],
+    }
+
+
+def build_teacher_dashboard_context(user):
+
+    teacher = getattr(
+        user,
+        'teacher_profile',
+        None
+    )
+
+    assignments = WorkloadAssignment.objects.none()
+    tasks = Task.objects.none()
+
+    if teacher is not None:
+
+        assignments = WorkloadAssignment.objects.filter(
+            teacher=teacher
+        )
+
+        tasks = Task.objects.filter(
+            teacher=teacher
+        )
+
+    active_tasks = tasks.exclude(
+        status=Task.Statuses.COMPLETED
+    )
+
+    return {
+        'teacher': teacher,
+        'my_workload_hours': assignments.aggregate(
+            total=Sum('assigned_hours')
+        )['total'] or 0,
+        'my_tasks_count': tasks.count(),
+        'new_notifications_count': Notification.objects.filter(
+            recipient=user
+        ).count(),
+        'nearest_deadlines': active_tasks.order_by(
+            'due_date',
+            '-created_at'
+        )[:5],
+    }
+
+
+def build_admin_dashboard_context():
+
+    latest_actions = []
+
+    for import_log in ImportLog.objects.select_related(
+        'user'
+    ).order_by(
+        '-created_at'
+    )[:3]:
+
+        latest_actions.append(
+            {
+                'title': f'Импорт: {import_log.get_import_type_display()}',
+                'meta': import_log.user.email,
+                'timestamp': import_log.created_at,
+            }
+        )
+
+    for task in Task.objects.select_related(
+        'teacher'
+    ).order_by(
+        '-created_at'
+    )[:3]:
+
+        latest_actions.append(
+            {
+                'title': f'Поручение: {task.title}',
+                'meta': task.teacher.full_name,
+                'timestamp': task.created_at,
+            }
+        )
+
+    for notification in Notification.objects.select_related(
+        'recipient'
+    ).order_by(
+        '-created_at'
+    )[:3]:
+
+        latest_actions.append(
+            {
+                'title': notification.title,
+                'meta': notification.recipient.email,
+                'timestamp': notification.created_at,
+            }
+        )
+
+    latest_actions.sort(
+        key=lambda item: item['timestamp'],
+        reverse=True
+    )
+
+    return {
+        'users_count': User.objects.count(),
+        'roles_count': User.objects.values(
+            'role'
+        ).distinct().count(),
+        'notifications_count': Notification.objects.count(),
+        'latest_actions': latest_actions[:6],
+    }
+
+    subject_rows = []
+
+    for subject in Subject.objects.all().order_by('semester', 'name'):
+
+        subject_rows.append({
+            'subject': subject,
+            'assignment': assignment_by_subject.get(subject.id)
+        })
+
+    distributed_hours, remaining_hours = get_plan_hours(plan)
+
+    teachers = Teacher.objects.select_related('user').order_by('full_name')
+
+    return {
+        'plan': plan,
+        'form': form,
+        'subject_rows': subject_rows,
+        'teachers_data': build_teacher_load_data(
+            teachers,
+            plan.academic_year
+        ),
+        'assignments': assignments,
+        'distributed_hours': distributed_hours,
+        'remaining_hours': remaining_hours,
+        'total_hours': plan.total_hours,
+        'is_approved': plan.status == WorkloadPlan.Statuses.APPROVED
+    }
+
+
 def build_import_forms(bound_form=None, active_import_type=None):
 
     forms = {}
@@ -257,7 +467,8 @@ def admin_dashboard(request):
 
     return render(
         request,
-        'dashboards/admin_dashboard.html'
+        'dashboards/admin_dashboard.html',
+        build_admin_dashboard_context()
     )
 
 
@@ -267,7 +478,8 @@ def head_dashboard(request):
 
     return render(
         request,
-        'dashboards/head_dashboard.html'
+        'dashboards/head_dashboard.html',
+        build_head_dashboard_context()
     )
 
 
@@ -277,7 +489,8 @@ def teacher_dashboard(request):
 
     return render(
         request,
-        'dashboards/teacher_dashboard.html'
+        'dashboards/teacher_dashboard.html',
+        build_teacher_dashboard_context(request.user)
     )
 
 
@@ -287,7 +500,8 @@ def study_dashboard(request):
 
     return render(
         request,
-        'dashboards/study_dashboard.html'
+        'dashboards/study_dashboard.html',
+        build_study_dashboard_context()
     )
 
 
@@ -350,6 +564,8 @@ def workload_distribution_view(request, pk):
                     'approved_at'
                 ]
             )
+
+            notify_workload_approved(plan)
 
             messages.success(
                 request,

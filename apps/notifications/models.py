@@ -44,6 +44,29 @@ class Notification(models.Model):
         return self.title
 
 
+def create_notification(
+    recipient,
+    notification_type,
+    title,
+    message,
+    task=None
+):
+
+    notification = Notification.objects.create(
+        recipient=recipient,
+        task=task,
+        notification_type=notification_type,
+        title=title,
+        message=message
+    )
+
+    from apps.notifications.telegram import send_notification_to_telegram
+
+    send_notification_to_telegram(notification)
+
+    return notification
+
+
 def create_task_notification(
     recipient,
     task,
@@ -68,7 +91,7 @@ def create_task_notification(
             f'"{task.get_status_display()}".'
         )
 
-    return Notification.objects.create(
+    return create_notification(
         recipient=recipient,
         task=task,
         notification_type=notification_type,

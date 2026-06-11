@@ -82,6 +82,17 @@ class User(AbstractUser):
         null=True
     )
 
+    telegram_bind_code = models.CharField(
+        max_length=20,
+        blank=True,
+        null=True
+    )
+
+    telegram_bind_code_created_at = models.DateTimeField(
+        blank=True,
+        null=True
+    )
+
     is_2fa_enabled = models.BooleanField(
         default=False
     )
