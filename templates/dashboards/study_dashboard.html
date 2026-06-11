@@ -33,24 +33,30 @@
         <hr style="border-color:rgba(255,255,255,0.1);">
 
         <p>Главная</p>
-
         <p>Импорт Excel</p>
+
         <p>
+            <a href="/study-workload/"
+               style="color:white;text-decoration:none;">
+                Учебная нагрузка
+            </a>
+        </p>
 
-    <a href="/study-workload/"
-       style="color:white;text-decoration:none;">
-
-        Учебная нагрузка
-
-    </a>
-
-</p>
-
-        <p>Справочники</p>
+        <p>
+            <a href="/study-directories/"
+               style="color:white;text-decoration:none;">
+                Справочники
+            </a>
+        </p>
 
         <p>Группы</p>
 
-        <p>Отчёты</p>
+        <p>
+            <a href="/reports/"
+               style="color:white;text-decoration:none;">
+                Отчеты
+            </a>
+        </p>
 
         <div style="
             position:absolute;
@@ -82,19 +88,13 @@
 
                 <div>
 
-                    <div style="
-                        font-weight:600;
-                        font-size:14px;
-                    ">
+                    <div style="font-weight:600;font-size:14px;">
 
                         {{ request.user.email }}
 
                     </div>
 
-                    <div style="
-                        font-size:12px;
-                        opacity:0.7;
-                    ">
+                    <div style="font-size:12px;opacity:0.7;">
 
                         {{ request.user.role }}
 
@@ -125,9 +125,34 @@
 
         <p style="color:#6b7280;">
 
-            Управление учебными данными и импортом.
+            Управление учебными данными и нагрузкой.
 
         </p>
+
+        <div class="d-flex gap-2 mt-3">
+
+            <a href="/study-workload/"
+               class="btn btn-outline-primary">
+
+                Учебная нагрузка
+
+            </a>
+
+            <a href="/study-directories/"
+               class="btn btn-primary">
+
+                Справочники
+
+            </a>
+
+            <a href="/reports/"
+               class="btn btn-outline-secondary">
+
+                Открыть отчеты
+
+            </a>
+
+        </div>
 
     </div>
 

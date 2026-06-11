@@ -149,6 +149,11 @@ class WorkloadPlan(models.Model):
         auto_now_add=True
     )
 
+    approved_at = models.DateTimeField(
+        blank=True,
+        null=True
+    )
+
     def __str__(self):
 
         return f'{self.кафедра} ({self.academic_year})'

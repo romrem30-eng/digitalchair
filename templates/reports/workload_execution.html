@@ -1,0 +1,92 @@
+{% extends 'reports/base.html' %}
+
+{% block content %}
+    <div class="bg-white border rounded-3 p-4 shadow-sm">
+
+        <form method="get"
+              class="row g-3 align-items-end mb-4">
+
+            <div class="col-md-4">
+
+                <label for="academic_year"
+                       class="form-label">
+
+                    Учебный год
+
+                </label>
+
+                <select name="academic_year"
+                        id="academic_year"
+                        class="form-select">
+
+                    <option value="">Все</option>
+
+                    {% for year in academic_years %}
+                        <option value="{{ year }}"
+                                {% if academic_year == year %}selected{% endif %}>
+
+                            {{ year }}
+
+                        </option>
+                    {% endfor %}
+
+                </select>
+
+            </div>
+
+            <div class="col-md-auto">
+
+                <button type="submit"
+                        class="btn btn-primary">
+
+                    Показать
+
+                </button>
+
+            </div>
+
+        </form>
+
+        <div class="table-responsive">
+
+            <table class="table align-middle">
+
+                <thead>
+                <tr>
+                    <th>Кафедра</th>
+                    <th>Учебный год</th>
+                    <th>Плановые часы</th>
+                    <th>Распределенные часы</th>
+                    <th>Оставшиеся часы</th>
+                    <th>Статус плана</th>
+                </tr>
+                </thead>
+
+                <tbody>
+                {% for row in plan_rows %}
+                    <tr>
+                        <td>{{ row.plan.кафедра }}</td>
+                        <td>{{ row.plan.academic_year }}</td>
+                        <td>{{ row.plan.total_hours }}</td>
+                        <td>{{ row.distributed_hours }}</td>
+                        <td>{{ row.remaining_hours }}</td>
+                        <td>{{ row.plan.get_status_display }}</td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="6"
+                            class="text-center text-muted py-4">
+
+                            Планы нагрузки пока отсутствуют.
+
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+{% endblock %}

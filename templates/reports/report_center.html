@@ -1,0 +1,46 @@
+{% extends 'reports/base.html' %}
+
+{% block content %}
+    <div class="row g-4">
+
+        {% for report in report_cards %}
+            <div class="col-lg-6">
+
+                <div class="bg-white border rounded-3 p-4 h-100 shadow-sm">
+
+                    <h3 class="h5 mb-2">
+
+                        {{ report.title }}
+
+                    </h3>
+
+                    <p class="text-muted mb-4">
+
+                        {{ report.description }}
+
+                    </p>
+
+                    <a href="{{ report.url }}"
+                       class="btn btn-primary">
+
+                        Открыть отчет
+
+                    </a>
+
+                </div>
+
+            </div>
+        {% empty %}
+            <div class="col-12">
+
+                <div class="alert alert-secondary mb-0">
+
+                    Для вашей роли нет доступных отчетов.
+
+                </div>
+
+            </div>
+        {% endfor %}
+
+    </div>
+{% endblock %}

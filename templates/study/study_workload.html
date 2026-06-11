@@ -51,9 +51,18 @@
 
         <p>Импорт Excel</p>
 
-        <p>Справочники</p>
+        <p>
 
-        <p>Отчёты</p>
+            <a href="/study-directories/"
+               style="color:white;text-decoration:none;">
+
+                Справочники
+
+            </a>
+
+        </p>
+
+        <p>Отчеты</p>
 
         <div style="
             position:absolute;
@@ -138,11 +147,12 @@
 
             </div>
 
-            <button class="btn btn-primary">
+            <a href="/study-workload/plans/create/"
+               class="btn btn-primary">
 
-                Создать план
+                Создать план нагрузки
 
-            </button>
+            </a>
 
         </div>
 
@@ -163,6 +173,8 @@
                         <th>Часы</th>
 
                         <th>Статус</th>
+
+                        <th class="text-end">Действия</th>
 
                     </tr>
 
@@ -227,6 +239,44 @@
                                 </span>
 
                             {% endif %}
+
+                        </td>
+
+                        <td class="text-end">
+
+                            <a href="/study-workload/plans/{{ plan.id }}/"
+                               class="btn btn-sm btn-outline-primary">
+
+                                Открыть
+
+                            </a>
+
+                            <a href="/study-workload/plans/{{ plan.id }}/edit/"
+                               class="btn btn-sm btn-outline-secondary">
+
+                                Редактировать
+
+                            </a>
+
+                            <a href="/study-workload/plans/{{ plan.id }}/delete/"
+                               class="btn btn-sm btn-outline-danger">
+
+                                Удалить
+
+                            </a>
+
+                        </td>
+
+                    </tr>
+
+                    {% empty %}
+
+                    <tr>
+
+                        <td colspan="5"
+                            class="text-center text-muted py-4">
+
+                            Планы нагрузки пока не созданы.
 
                         </td>
 

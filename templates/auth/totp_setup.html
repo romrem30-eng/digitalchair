@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+
+    <meta charset="UTF-8">
+
+    <title>Настройка 2FA</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+          rel="stylesheet">
+
+</head>
+
+<body style="background:#f3f4f6;">
+
+<div class="container py-5">
+
+    <div class="row justify-content-center">
+
+        <div class="col-lg-8">
+
+            <div class="d-flex justify-content-between align-items-center mb-4">
+
+                <div>
+                    <h1 style="font-weight:700;">Настройка 2FA</h1>
+                    <p style="color:#6b7280;">Двухфакторная аутентификация через Google Authenticator.</p>
+                </div>
+
+                <a href="{% if request.user.role == 'ADMIN' %}/admin-dashboard/{% else %}/head-dashboard/{% endif %}"
+                   class="btn btn-outline-secondary">
+                    Назад
+                </a>
+
+            </div>
+
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags|default:'info' }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+
+                    <div class="mb-4">
+                        <strong>Статус:</strong>
+                        {% if is_2fa_enabled %}
+                            <span class="badge bg-success">Включена</span>
+                        {% else %}
+                            <span class="badge bg-secondary">Отключена</span>
+                        {% endif %}
+                    </div>
+
+                    <div class="row g-4">
+
+                        <div class="col-md-5 text-center">
+                            {% if qr_code_url %}
+                                <img src="{{ qr_code_url }}"
+                                     alt="QR code"
+                                     class="img-fluid border rounded p-2 bg-white">
+                            {% endif %}
+                        </div>
+
+                        <div class="col-md-7">
+                            <p class="text-muted mb-3">
+                                Отсканируйте QR-код в Google Authenticator или введите секрет вручную.
+                            </p>
+
+                            {% if totp_secret %}
+                                <div class="alert alert-light border">
+                                    <div class="small text-muted mb-1">Секрет</div>
+                                    <code>{{ totp_secret }}</code>
+                                </div>
+                            {% endif %}
+
+                            {% if not is_2fa_enabled %}
+                                <form method="post">
+                                    {% csrf_token %}
+                                    <div class="mb-3">
+                                        <label class="form-label">Код подтверждения</label>
+                                        <input type="text"
+                                               name="code"
+                                               class="form-control"
+                                               placeholder="123456"
+                                               required>
+                                    </div>
+                                    <button type="submit"
+                                            name="enable_2fa"
+                                            value="1"
+                                            class="btn btn-primary">
+                                        Включить 2FA
+                                    </button>
+                                </form>
+                            {% else %}
+                                <form method="post">
+                                    {% csrf_token %}
+                                    <button type="submit"
+                                            name="disable_2fa"
+                                            value="1"
+                                            class="btn btn-outline-danger">
+                                        Отключить 2FA
+                                    </button>
+                                </form>
+                            {% endif %}
+                        </div>
+
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+</body>
+</html>

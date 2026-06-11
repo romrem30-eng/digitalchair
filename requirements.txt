@@ -10,3 +10,4 @@ reportlab
 aiogram
 gunicorn
 whitenoise
+pyotp

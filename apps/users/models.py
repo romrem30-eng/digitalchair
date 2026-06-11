@@ -82,6 +82,16 @@ class User(AbstractUser):
         null=True
     )
 
+    is_2fa_enabled = models.BooleanField(
+        default=False
+    )
+
+    totp_secret = models.CharField(
+        max_length=64,
+        blank=True,
+        null=True
+    )
+
     USERNAME_FIELD = 'email'
 
     REQUIRED_FIELDS = []

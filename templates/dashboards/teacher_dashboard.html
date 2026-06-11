@@ -32,13 +32,40 @@
 
         <hr style="border-color:rgba(255,255,255,0.1);">
 
-        <p>Главная</p>
+        <p>
+            <a href="/teacher-dashboard/"
+               style="color:white;text-decoration:none;">
+                Главная
+            </a>
+        </p>
 
-        <p>Моя нагрузка</p>
+        <p>
+            <a href="/my-workload/"
+               style="color:white;text-decoration:none;">
+                Моя нагрузка
+            </a>
+        </p>
 
-        <p>Мои поручения</p>
+        <p>
+            <a href="/my-assignments/"
+               style="color:white;text-decoration:none;font-weight:700;">
+                Мои поручения
+            </a>
+        </p>
 
-        <p>Мои отчёты</p>
+        <p>
+            <a href="/notifications/"
+               style="color:white;text-decoration:none;">
+                Уведомления
+            </a>
+        </p>
+
+        <p>
+            <a href="/reports/"
+               style="color:white;text-decoration:none;">
+                Отчеты
+            </a>
+        </p>
 
         <div style="
             position:absolute;
@@ -70,19 +97,13 @@
 
                 <div>
 
-                    <div style="
-                        font-weight:600;
-                        font-size:14px;
-                    ">
+                    <div style="font-weight:600;font-size:14px;">
 
                         {{ request.user.email }}
 
                     </div>
 
-                    <div style="
-                        font-size:12px;
-                        opacity:0.7;
-                    ">
+                    <div style="font-size:12px;opacity:0.7;">
 
                         {{ request.user.role }}
 
@@ -113,9 +134,41 @@
 
         <p style="color:#6b7280;">
 
-            Индивидуальная рабочая среда преподавателя.
+            Здесь собраны ваша нагрузка, поручения и внутренние уведомления.
 
         </p>
+
+        <div class="d-flex gap-2 mt-3">
+
+            <a href="/my-workload/"
+               class="btn btn-outline-primary">
+
+                Открыть мою нагрузку
+
+            </a>
+
+            <a href="/my-assignments/"
+               class="btn btn-primary">
+
+                Открыть мои поручения
+
+            </a>
+
+            <a href="/reports/"
+               class="btn btn-outline-dark">
+
+                Отчеты
+
+            </a>
+
+            <a href="/notifications/"
+               class="btn btn-outline-secondary">
+
+                Центр уведомлений
+
+            </a>
+
+        </div>
 
     </div>
 

@@ -1,0 +1,67 @@
+{% extends 'reports/base.html' %}
+
+{% block content %}
+    <div class="row g-4">
+
+        <div class="col-md-4">
+
+            <div class="bg-white border rounded-3 p-4 shadow-sm h-100">
+
+                <div class="text-muted mb-2">
+
+                    Преподаватели
+
+                </div>
+
+                <div style="font-size:36px;font-weight:700;">
+
+                    {{ teachers_count }}
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="col-md-4">
+
+            <div class="bg-white border rounded-3 p-4 shadow-sm h-100">
+
+                <div class="text-muted mb-2">
+
+                    Дисциплины
+
+                </div>
+
+                <div style="font-size:36px;font-weight:700;">
+
+                    {{ subjects_count }}
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="col-md-4">
+
+            <div class="bg-white border rounded-3 p-4 shadow-sm h-100">
+
+                <div class="text-muted mb-2">
+
+                    Группы
+
+                </div>
+
+                <div style="font-size:36px;font-weight:700;">
+
+                    {{ groups_count }}
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+{% endblock %}

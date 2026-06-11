@@ -1,0 +1,48 @@
+{% extends 'reports/base.html' %}
+
+{% block content %}
+    <div class="bg-white border rounded-3 p-4 shadow-sm">
+
+        <div class="table-responsive">
+
+            <table class="table align-middle">
+
+                <thead>
+                <tr>
+                    <th>Название поручения</th>
+                    <th>Исполнитель</th>
+                    <th>Срок</th>
+                    <th>Статус</th>
+                    <th>Приоритет</th>
+                    <th>Дата завершения</th>
+                </tr>
+                </thead>
+
+                <tbody>
+                {% for task in tasks %}
+                    <tr>
+                        <td>{{ task.title }}</td>
+                        <td>{{ task.teacher.full_name }}</td>
+                        <td>{{ task.due_date }}</td>
+                        <td>{{ task.get_status_display }}</td>
+                        <td>{{ task.get_priority_display }}</td>
+                        <td>{{ task.completed_at|default:'-' }}</td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="6"
+                            class="text-center text-muted py-4">
+
+                            Поручения пока отсутствуют.
+
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+{% endblock %}

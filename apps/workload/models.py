@@ -2,11 +2,20 @@ from django.db import models
 
 from apps.core.models import (
     Teacher,
-    Subject
+    Subject,
+    WorkloadPlan
 )
 
 
 class WorkloadAssignment(models.Model):
+
+    plan = models.ForeignKey(
+        WorkloadPlan,
+        on_delete=models.CASCADE,
+        related_name='assignments',
+        blank=True,
+        null=True
+    )
 
     teacher = models.ForeignKey(
         Teacher,

@@ -1,0 +1,122 @@
+{% extends 'reports/base.html' %}
+
+{% block content %}
+    <div class="bg-white border rounded-3 p-4 shadow-sm">
+
+        {% if not is_personal_view %}
+            <form method="get"
+                  class="row g-3 align-items-end mb-4">
+
+                <div class="col-md-5">
+
+                    <label for="teacher"
+                           class="form-label">
+
+                        Преподаватель
+
+                    </label>
+
+                    <select name="teacher"
+                            id="teacher"
+                            class="form-select">
+
+                        {% for teacher in teachers %}
+                            <option value="{{ teacher.id }}"
+                                    {% if selected_teacher and selected_teacher.id == teacher.id %}selected{% endif %}>
+
+                                {{ teacher.full_name }}
+
+                            </option>
+                        {% endfor %}
+
+                    </select>
+
+                </div>
+
+                <div class="col-md-auto">
+
+                    <button type="submit"
+                            class="btn btn-primary">
+
+                        Показать
+
+                    </button>
+
+                </div>
+
+            </form>
+        {% endif %}
+
+        {% if selected_teacher %}
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+
+                <div>
+
+                    <h2 class="h4 mb-1">
+
+                        {{ selected_teacher.full_name }}
+
+                    </h2>
+
+                    <div class="text-muted">
+
+                        {{ selected_teacher.get_position_display }}{% if selected_teacher.academic_degree %}, {{ selected_teacher.academic_degree }}{% endif %}
+
+                    </div>
+
+                </div>
+
+                <div class="badge text-bg-primary fs-6 px-3 py-2">
+
+                    Итого часов: {{ total_hours }}
+
+                </div>
+
+            </div>
+
+            <div class="table-responsive">
+
+                <table class="table align-middle">
+
+                    <thead>
+                    <tr>
+                        <th>Дисциплина</th>
+                        <th>Часы</th>
+                        <th>Семестр</th>
+                        <th>Учебный год</th>
+                    </tr>
+                    </thead>
+
+                    <tbody>
+                    {% for assignment in assignments %}
+                        <tr>
+                            <td>{{ assignment.subject.name }}</td>
+                            <td>{{ assignment.assigned_hours }}</td>
+                            <td>{{ assignment.semester }}</td>
+                            <td>{{ assignment.academic_year }}</td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="4"
+                                class="text-center text-muted py-4">
+
+                                Назначенная нагрузка не найдена.
+
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+
+                </table>
+
+            </div>
+        {% else %}
+            <div class="alert alert-secondary mb-0">
+
+                Для выбранного пользователя не найден профиль преподавателя.
+
+            </div>
+        {% endif %}
+
+    </div>
+{% endblock %}

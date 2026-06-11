@@ -32,24 +32,47 @@
 
         <hr style="border-color:rgba(255,255,255,0.1);">
 
-        <p>Главная</p>
+        <p>
+            <a href="/head-dashboard/"
+               style="color:white;text-decoration:none;">
+                Главная
+            </a>
+        </p>
 
         <p>
+            <a href="/workload/"
+               style="color:white;text-decoration:none;">
+                Нагрузка
+            </a>
+        </p>
 
-    <a href="/workload/"
-       style="color:white;text-decoration:none;">
+        <p>
+            <a href="/assignments/"
+               style="color:white;text-decoration:none;font-weight:700;">
+                Поручения
+            </a>
+        </p>
 
-        Нагрузка
+        <p>
+            <a href="/notifications/"
+               style="color:white;text-decoration:none;">
+                Уведомления
+            </a>
+        </p>
 
-    </a>
+        <p>
+            <a href="/reports/"
+               style="color:white;text-decoration:none;">
+                Отчеты
+            </a>
+        </p>
 
-</p>
-
-        <p>Преподаватели</p>
-
-        <p>Поручения</p>
-
-        <p>Отчёты</p>
+        <p>
+            <a href="/2fa/setup/"
+               style="color:white;text-decoration:none;">
+                Настройки 2FA
+            </a>
+        </p>
 
         <div style="
             position:absolute;
@@ -81,19 +104,13 @@
 
                 <div>
 
-                    <div style="
-                        font-weight:600;
-                        font-size:14px;
-                    ">
+                    <div style="font-weight:600;font-size:14px;">
 
                         {{ request.user.email }}
 
                     </div>
 
-                    <div style="
-                        font-size:12px;
-                        opacity:0.7;
-                    ">
+                    <div style="font-size:12px;opacity:0.7;">
 
                         {{ request.user.role }}
 
@@ -124,9 +141,41 @@
 
         <p style="color:#6b7280;">
 
-            Управление нагрузкой кафедры и преподавателями.
+            Управление нагрузкой, поручениями и преподавателями кафедры.
 
         </p>
+
+        <div class="d-flex gap-2 mt-3">
+
+            <a href="/workload/"
+               class="btn btn-outline-primary">
+
+                Распределение нагрузки
+
+            </a>
+
+            <a href="/assignments/"
+               class="btn btn-primary">
+
+                Открыть поручения
+
+            </a>
+
+            <a href="/reports/"
+               class="btn btn-outline-dark">
+
+                Отчеты
+
+            </a>
+
+            <a href="/2fa/setup/"
+               class="btn btn-outline-secondary">
+
+                Настроить 2FA
+
+            </a>
+
+        </div>
 
     </div>
 
