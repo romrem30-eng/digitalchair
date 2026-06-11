@@ -3,6 +3,24 @@
 {% block content %}
     <div class="bg-white border rounded-3 p-4 shadow-sm">
 
+        <div class="d-flex justify-content-end gap-2 mb-3">
+
+            <a href="/reports/teacher-workload/export/docx/{% if current_query_string %}?{{ current_query_string }}{% endif %}"
+               class="btn btn-outline-primary">
+
+                Экспорт DOCX
+
+            </a>
+
+            <a href="/reports/teacher-workload/export/pdf/{% if current_query_string %}?{{ current_query_string }}{% endif %}"
+               class="btn btn-outline-danger">
+
+                Экспорт PDF
+
+            </a>
+
+        </div>
+
         {% if not is_personal_view %}
             <form method="get"
                   class="row g-3 align-items-end mb-4">

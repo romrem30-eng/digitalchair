@@ -24,16 +24,18 @@
         position:relative;
     ">
 
-        <h3 style="font-weight:700;">
-
-            DigitalChair
-
-        </h3>
+        <h3 style="font-weight:700;">DigitalChair</h3>
 
         <hr style="border-color:rgba(255,255,255,0.1);">
 
         <p>Главная</p>
-        <p>Импорт Excel</p>
+
+        <p>
+            <a href="/imports/"
+               style="color:white;text-decoration:none;">
+                Импорт Excel
+            </a>
+        </p>
 
         <p>
             <a href="/study-workload/"
@@ -81,34 +83,23 @@
                     font-size:18px;
                     margin-right:12px;
                 ">
-
                     {{ request.user.email|first|upper }}
-
                 </div>
 
                 <div>
-
                     <div style="font-weight:600;font-size:14px;">
-
                         {{ request.user.email }}
-
                     </div>
-
                     <div style="font-size:12px;opacity:0.7;">
-
                         {{ request.user.role }}
-
                     </div>
-
                 </div>
 
             </div>
 
             <a href="/logout/"
                class="btn btn-outline-light w-100 mt-3">
-
                 Выйти
-
             </a>
 
         </div>
@@ -117,39 +108,32 @@
 
     <div class="p-5 w-100">
 
-        <h1 style="font-weight:700;">
-
-            Панель учебного мастера
-
-        </h1>
+        <h1 style="font-weight:700;">Панель учебного мастера</h1>
 
         <p style="color:#6b7280;">
-
-            Управление учебными данными и нагрузкой.
-
+            Управление учебными данными, импортом и нагрузкой.
         </p>
 
         <div class="d-flex gap-2 mt-3">
 
             <a href="/study-workload/"
                class="btn btn-outline-primary">
-
                 Учебная нагрузка
-
             </a>
 
             <a href="/study-directories/"
                class="btn btn-primary">
-
                 Справочники
+            </a>
 
+            <a href="/imports/"
+               class="btn btn-outline-dark">
+                Импорт данных
             </a>
 
             <a href="/reports/"
                class="btn btn-outline-secondary">
-
                 Открыть отчеты
-
             </a>
 
         </div>

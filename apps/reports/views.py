@@ -1,7 +1,9 @@
+from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.decorators import user_passes_test
 from django.db.models import Sum
 from django.shortcuts import render
+from django.utils import timezone
 from django.views.decorators.cache import never_cache
 
 from apps.assignments.models import Task
@@ -9,6 +11,12 @@ from apps.core.models import StudentGroup
 from apps.core.models import Subject
 from apps.core.models import Teacher
 from apps.core.models import WorkloadPlan
+from apps.reports.exporters import build_contingent_xlsx
+from apps.reports.exporters import build_tasks_report_xlsx
+from apps.reports.exporters import build_teacher_workload_docx
+from apps.reports.exporters import build_teacher_workload_pdf
+from apps.reports.exporters import build_workload_execution_xlsx
+from apps.reports.exporters import build_workload_summary_xlsx
 from apps.users.models import User
 from apps.workload.models import WorkloadAssignment
 
@@ -154,6 +162,7 @@ def build_base_context(request, active_report=None):
         'dashboard_url': get_dashboard_url(request.user),
         'report_links': get_report_links(request.user),
         'active_report': active_report,
+        'current_query_string': request.GET.urlencode(),
     }
 
 
@@ -175,26 +184,27 @@ def render_report_page(request, template_name, context=None, active_report=None)
     )
 
 
-@login_required(login_url='/login/')
-@report_center_required
-@never_cache
-def report_center_view(request):
+def get_report_filename(prefix, extension):
 
-    return render_report_page(
-        request,
-        'reports/report_center.html',
-        {
-            'title': 'Отчеты',
-            'description': 'Единый центр просмотра отчетов по данным DigitalChair.',
-            'report_cards': get_report_links(request.user),
-        }
+    date_stamp = timezone.localdate().strftime('%Y%m%d')
+    return f'{prefix}_{date_stamp}.{extension}'
+
+
+def build_file_response(content, content_type, filename):
+
+    response = HttpResponse(
+        content,
+        content_type=content_type
     )
 
+    response['Content-Disposition'] = (
+        f'attachment; filename="{filename}"'
+    )
 
-@login_required(login_url='/login/')
-@workload_reports_required
-@never_cache
-def workload_summary_report_view(request):
+    return response
+
+
+def get_workload_summary_context(request):
 
     academic_year = request.GET.get('academic_year', '').strip()
 
@@ -222,24 +232,16 @@ def workload_summary_report_view(request):
         ).distinct()
     )
 
-    return render_report_page(
-        request,
-        'reports/workload_summary.html',
-        {
-            'title': REPORT_DEFINITIONS['workload-summary']['title'],
-            'description': REPORT_DEFINITIONS['workload-summary']['description'],
-            'assignments': assignments,
-            'academic_year': academic_year,
-            'academic_years': academic_years,
-        },
-        active_report='workload-summary'
-    )
+    return {
+        'title': REPORT_DEFINITIONS['workload-summary']['title'],
+        'description': REPORT_DEFINITIONS['workload-summary']['description'],
+        'assignments': assignments,
+        'academic_year': academic_year,
+        'academic_years': academic_years,
+    }
 
 
-@login_required(login_url='/login/')
-@teacher_workload_required
-@never_cache
-def teacher_workload_report_view(request):
+def get_teacher_workload_context(request):
 
     teachers = Teacher.objects.select_related('user').order_by('full_name')
     selected_teacher = None
@@ -286,26 +288,18 @@ def teacher_workload_report_view(request):
             total=Sum('assigned_hours')
         )['total'] or 0
 
-    return render_report_page(
-        request,
-        'reports/teacher_workload.html',
-        {
-            'title': REPORT_DEFINITIONS['teacher-workload']['title'],
-            'description': REPORT_DEFINITIONS['teacher-workload']['description'],
-            'teachers': teachers,
-            'selected_teacher': selected_teacher,
-            'assignments': assignments,
-            'total_hours': total_hours,
-            'is_personal_view': request.user.role == User.Roles.TEACHER,
-        },
-        active_report='teacher-workload'
-    )
+    return {
+        'title': REPORT_DEFINITIONS['teacher-workload']['title'],
+        'description': REPORT_DEFINITIONS['teacher-workload']['description'],
+        'teachers': teachers,
+        'selected_teacher': selected_teacher,
+        'assignments': assignments,
+        'total_hours': total_hours,
+        'is_personal_view': request.user.role == User.Roles.TEACHER,
+    }
 
 
-@login_required(login_url='/login/')
-@workload_reports_required
-@never_cache
-def workload_execution_report_view(request):
+def get_workload_execution_context(request):
 
     academic_year = request.GET.get('academic_year', '').strip()
 
@@ -342,24 +336,16 @@ def workload_execution_report_view(request):
         ).distinct()
     )
 
-    return render_report_page(
-        request,
-        'reports/workload_execution.html',
-        {
-            'title': REPORT_DEFINITIONS['workload-execution']['title'],
-            'description': REPORT_DEFINITIONS['workload-execution']['description'],
-            'plan_rows': plan_rows,
-            'academic_year': academic_year,
-            'academic_years': academic_years,
-        },
-        active_report='workload-execution'
-    )
+    return {
+        'title': REPORT_DEFINITIONS['workload-execution']['title'],
+        'description': REPORT_DEFINITIONS['workload-execution']['description'],
+        'plan_rows': plan_rows,
+        'academic_year': academic_year,
+        'academic_years': academic_years,
+    }
 
 
-@login_required(login_url='/login/')
-@task_reports_required
-@never_cache
-def tasks_report_view(request):
+def get_tasks_report_context():
 
     tasks = Task.objects.select_related(
         'teacher',
@@ -368,14 +354,85 @@ def tasks_report_view(request):
         '-created_at'
     )
 
+    return {
+        'title': REPORT_DEFINITIONS['tasks']['title'],
+        'description': REPORT_DEFINITIONS['tasks']['description'],
+        'tasks': tasks,
+    }
+
+
+def get_contingent_context():
+
+    return {
+        'title': REPORT_DEFINITIONS['contingent']['title'],
+        'description': REPORT_DEFINITIONS['contingent']['description'],
+        'teachers_count': Teacher.objects.count(),
+        'subjects_count': Subject.objects.count(),
+        'groups_count': StudentGroup.objects.count(),
+    }
+
+
+@login_required(login_url='/login/')
+@report_center_required
+@never_cache
+def report_center_view(request):
+
+    return render_report_page(
+        request,
+        'reports/report_center.html',
+        {
+            'title': 'Отчеты',
+            'description': 'Единый центр просмотра отчетов по данным DigitalChair.',
+            'report_cards': get_report_links(request.user),
+        }
+    )
+
+
+@login_required(login_url='/login/')
+@workload_reports_required
+@never_cache
+def workload_summary_report_view(request):
+
+    return render_report_page(
+        request,
+        'reports/workload_summary.html',
+        get_workload_summary_context(request),
+        active_report='workload-summary'
+    )
+
+
+@login_required(login_url='/login/')
+@teacher_workload_required
+@never_cache
+def teacher_workload_report_view(request):
+    return render_report_page(
+        request,
+        'reports/teacher_workload.html',
+        get_teacher_workload_context(request),
+        active_report='teacher-workload'
+    )
+
+
+@login_required(login_url='/login/')
+@workload_reports_required
+@never_cache
+def workload_execution_report_view(request):
+    return render_report_page(
+        request,
+        'reports/workload_execution.html',
+        get_workload_execution_context(request),
+        active_report='workload-execution'
+    )
+
+
+@login_required(login_url='/login/')
+@task_reports_required
+@never_cache
+def tasks_report_view(request):
     return render_report_page(
         request,
         'reports/tasks_report.html',
-        {
-            'title': REPORT_DEFINITIONS['tasks']['title'],
-            'description': REPORT_DEFINITIONS['tasks']['description'],
-            'tasks': tasks,
-        },
+        get_tasks_report_context(),
         active_report='tasks'
     )
 
@@ -388,12 +445,102 @@ def contingent_report_view(request):
     return render_report_page(
         request,
         'reports/contingent.html',
-        {
-            'title': REPORT_DEFINITIONS['contingent']['title'],
-            'description': REPORT_DEFINITIONS['contingent']['description'],
-            'teachers_count': Teacher.objects.count(),
-            'subjects_count': Subject.objects.count(),
-            'groups_count': StudentGroup.objects.count(),
-        },
+        get_contingent_context(),
         active_report='contingent'
+    )
+
+
+@login_required(login_url='/login/')
+@workload_reports_required
+@never_cache
+def workload_summary_export_view(request):
+
+    context = get_workload_summary_context(request)
+
+    return build_file_response(
+        build_workload_summary_xlsx(context['assignments']),
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        get_report_filename('workload_summary', 'xlsx')
+    )
+
+
+@login_required(login_url='/login/')
+@teacher_workload_required
+@never_cache
+def teacher_workload_docx_export_view(request):
+
+    context = get_teacher_workload_context(request)
+
+    return build_file_response(
+        build_teacher_workload_docx(
+            context['selected_teacher'],
+            context['assignments'],
+            context['total_hours']
+        ),
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        get_report_filename('teacher_plan', 'docx')
+    )
+
+
+@login_required(login_url='/login/')
+@teacher_workload_required
+@never_cache
+def teacher_workload_pdf_export_view(request):
+
+    context = get_teacher_workload_context(request)
+
+    return build_file_response(
+        build_teacher_workload_pdf(
+            context['selected_teacher'],
+            context['assignments'],
+            context['total_hours']
+        ),
+        'application/pdf',
+        get_report_filename('teacher_plan', 'pdf')
+    )
+
+
+@login_required(login_url='/login/')
+@workload_reports_required
+@never_cache
+def workload_execution_export_view(request):
+
+    context = get_workload_execution_context(request)
+
+    return build_file_response(
+        build_workload_execution_xlsx(context['plan_rows']),
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        get_report_filename('workload_execution', 'xlsx')
+    )
+
+
+@login_required(login_url='/login/')
+@task_reports_required
+@never_cache
+def tasks_report_export_view(request):
+
+    context = get_tasks_report_context()
+
+    return build_file_response(
+        build_tasks_report_xlsx(context['tasks']),
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        get_report_filename('tasks_report', 'xlsx')
+    )
+
+
+@login_required(login_url='/login/')
+@contingent_report_required
+@never_cache
+def contingent_export_view(request):
+
+    context = get_contingent_context()
+
+    return build_file_response(
+        build_contingent_xlsx(
+            context['teachers_count'],
+            context['subjects_count'],
+            context['groups_count']
+        ),
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        get_report_filename('contingent', 'xlsx')
     )

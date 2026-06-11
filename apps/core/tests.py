@@ -1,6 +1,11 @@
-from django.contrib.auth import get_user_model
-from django.test import TestCase
+﻿from io import BytesIO
 
+from django.contrib.auth import get_user_model
+from django.core.files.uploadedfile import SimpleUploadedFile
+from django.test import TestCase
+from openpyxl import Workbook
+
+from apps.core.models import ImportLog
 from apps.core.models import StudentGroup
 from apps.core.models import Subject
 from apps.core.models import Teacher
@@ -36,7 +41,7 @@ class WorkloadPlanCrudTests(TestCase):
         response = self.client.post(
             '/study-workload/plans/create/',
             {
-                'кафедра': 'Кафедра информатики',
+                'кафедра': 'РљР°С„РµРґСЂР° РёРЅС„РѕСЂРјР°С‚РёРєРё',
                 'academic_year': '2025-2026',
                 'total_hours': 720,
                 'status': WorkloadPlan.Statuses.DRAFT
@@ -63,7 +68,7 @@ class WorkloadPlanCrudTests(TestCase):
         )
 
         plan = WorkloadPlan.objects.create(
-            кафедра='Кафедра математики',
+            кафедра='РљР°С„РµРґСЂР° РјР°С‚РµРјР°С‚РёРєРё',
             academic_year='2025-2026',
             total_hours=600,
             status=WorkloadPlan.Statuses.DRAFT
@@ -72,7 +77,7 @@ class WorkloadPlanCrudTests(TestCase):
         response = self.client.post(
             f'/study-workload/plans/{plan.id}/edit/',
             {
-                'кафедра': 'Кафедра прикладной математики',
+                'кафедра': 'РљР°С„РµРґСЂР° РїСЂРёРєР»Р°РґРЅРѕР№ РјР°С‚РµРјР°С‚РёРєРё',
                 'academic_year': '2026-2027',
                 'total_hours': 800,
                 'status': WorkloadPlan.Statuses.APPROVED
@@ -117,7 +122,7 @@ class WorkloadPlanCrudTests(TestCase):
         )
 
         plan = WorkloadPlan.objects.create(
-            кафедра='Кафедра физики',
+            кафедра='РљР°С„РµРґСЂР° С„РёР·РёРєРё',
             academic_year='2025-2026',
             total_hours=500,
             status=WorkloadPlan.Statuses.DRAFT
@@ -176,9 +181,9 @@ class StudyDirectoryCrudTests(TestCase):
             '/study-directories/teachers/create/',
             {
                 'user': self.teacher_user.id,
-                'full_name': 'Иванов Иван Иванович',
+                'full_name': 'РРІР°РЅРѕРІ РРІР°РЅ РРІР°РЅРѕРІРёС‡',
                 'position': 'docent',
-                'academic_degree': 'к.т.н.',
+                'academic_degree': 'Рє.С‚.РЅ.',
                 'rate': '1.0',
                 'max_hours': 900
             }
@@ -192,7 +197,7 @@ class StudyDirectoryCrudTests(TestCase):
         subject_response = self.client.post(
             '/study-directories/subjects/create/',
             {
-                'name': 'Программирование',
+                'name': 'РџСЂРѕРіСЂР°РјРјРёСЂРѕРІР°РЅРёРµ',
                 'hours': 144,
                 'semester': 1,
                 'control_type': 'exam'
@@ -207,9 +212,9 @@ class StudyDirectoryCrudTests(TestCase):
         group_response = self.client.post(
             '/study-directories/groups/create/',
             {
-                'name': 'ИВТ-101',
+                'name': 'РР’Рў-101',
                 'course': 1,
-                'direction': 'Информатика и вычислительная техника'
+                'direction': 'РРЅС„РѕСЂРјР°С‚РёРєР° Рё РІС‹С‡РёСЃР»РёС‚РµР»СЊРЅР°СЏ С‚РµС…РЅРёРєР°'
             }
         )
 
@@ -219,15 +224,15 @@ class StudyDirectoryCrudTests(TestCase):
         )
 
         self.assertTrue(
-            Teacher.objects.filter(full_name='Иванов Иван Иванович').exists()
+            Teacher.objects.filter(full_name='РРІР°РЅРѕРІ РРІР°РЅ РРІР°РЅРѕРІРёС‡').exists()
         )
 
         self.assertTrue(
-            Subject.objects.filter(name='Программирование').exists()
+            Subject.objects.filter(name='РџСЂРѕРіСЂР°РјРјРёСЂРѕРІР°РЅРёРµ').exists()
         )
 
         self.assertTrue(
-            StudentGroup.objects.filter(name='ИВТ-101').exists()
+            StudentGroup.objects.filter(name='РР’Рў-101').exists()
         )
 
     def test_study_master_can_update_and_delete_subject(self):
@@ -238,7 +243,7 @@ class StudyDirectoryCrudTests(TestCase):
         )
 
         subject = Subject.objects.create(
-            name='Математика',
+            name='РњР°С‚РµРјР°С‚РёРєР°',
             hours=120,
             semester=1,
             control_type='test'
@@ -247,7 +252,7 @@ class StudyDirectoryCrudTests(TestCase):
         response = self.client.post(
             f'/study-directories/subjects/{subject.id}/edit/',
             {
-                'name': 'Высшая математика',
+                'name': 'Р’С‹СЃС€Р°СЏ РјР°С‚РµРјР°С‚РёРєР°',
                 'hours': 180,
                 'semester': 2,
                 'control_type': 'exam'
@@ -263,7 +268,7 @@ class StudyDirectoryCrudTests(TestCase):
 
         self.assertEqual(
             subject.name,
-            'Высшая математика'
+            'Р’С‹СЃС€Р°СЏ РјР°С‚РµРјР°С‚РёРєР°'
         )
 
         response = self.client.post(
@@ -332,16 +337,16 @@ class HeadWorkloadDistributionTests(TestCase):
 
         self.teacher_profile = Teacher.objects.create(
             user=self.teacher_user,
-            full_name='Иванов Иван Иванович',
+            full_name='РРІР°РЅРѕРІ РРІР°РЅ РРІР°РЅРѕРІРёС‡',
             position='docent',
-            academic_degree='к.т.н.',
+            academic_degree='Рє.С‚.РЅ.',
             rate='1.0',
             max_hours=200
         )
 
         self.second_teacher_profile = Teacher.objects.create(
             user=self.other_teacher_user,
-            full_name='Петров Петр Петрович',
+            full_name='РџРµС‚СЂРѕРІ РџРµС‚СЂ РџРµС‚СЂРѕРІРёС‡',
             position='assistant',
             academic_degree='',
             rate='1.0',
@@ -349,21 +354,21 @@ class HeadWorkloadDistributionTests(TestCase):
         )
 
         self.plan = WorkloadPlan.objects.create(
-            кафедра='Кафедра информатики',
+            кафедра='РљР°С„РµРґСЂР° РёРЅС„РѕСЂРјР°С‚РёРєРё',
             academic_year='2025-2026',
             total_hours=300,
             status=WorkloadPlan.Statuses.DRAFT
         )
 
         self.subject = Subject.objects.create(
-            name='Программирование',
+            name='РџСЂРѕРіСЂР°РјРјРёСЂРѕРІР°РЅРёРµ',
             hours=120,
             semester=1,
             control_type='exam'
         )
 
         self.second_subject = Subject.objects.create(
-            name='Базы данных',
+            name='Р‘Р°Р·С‹ РґР°РЅРЅС‹С…',
             hours=90,
             semester=2,
             control_type='test'
@@ -515,7 +520,7 @@ class TeacherMyWorkloadTests(TestCase):
 
         self.teacher_profile = Teacher.objects.create(
             user=self.teacher_user,
-            full_name='Сидоров Сергей Сергеевич',
+            full_name='РЎРёРґРѕСЂРѕРІ РЎРµСЂРіРµР№ РЎРµСЂРіРµРµРІРёС‡',
             position='senior_teacher',
             academic_degree='',
             rate='1.0',
@@ -523,14 +528,14 @@ class TeacherMyWorkloadTests(TestCase):
         )
 
         self.plan = WorkloadPlan.objects.create(
-            кафедра='Кафедра математики',
+            кафедра='РљР°С„РµРґСЂР° РјР°С‚РµРјР°С‚РёРєРё',
             academic_year='2025-2026',
             total_hours=400,
             status=WorkloadPlan.Statuses.DRAFT
         )
 
         self.subject = Subject.objects.create(
-            name='Дискретная математика',
+            name='Р”РёСЃРєСЂРµС‚РЅР°СЏ РјР°С‚РµРјР°С‚РёРєР°',
             hours=110,
             semester=1,
             control_type='exam'
@@ -568,5 +573,279 @@ class TeacherMyWorkloadTests(TestCase):
 
         self.assertContains(
             response,
-            'Дискретная математика'
+            'Р”РёСЃРєСЂРµС‚РЅР°СЏ РјР°С‚РµРјР°С‚РёРєР°'
         )
+
+class ImportModuleTests(TestCase):
+
+    def setUp(self):
+
+        User = get_user_model()
+
+        self.study_master = User.objects.create_user(
+            email='import-study@example.com',
+            password='password',
+            role='STUDY_MASTER'
+        )
+
+        self.head = User.objects.create_user(
+            email='import-head@example.com',
+            password='password',
+            role='HEAD'
+        )
+
+        self.teacher_user = User.objects.create_user(
+            email='import-teacher@example.com',
+            password='password',
+            role='TEACHER'
+        )
+
+        self.plan = WorkloadPlan.objects.create(
+            кафедра='Кафедра информатики',
+            academic_year='2025-2026',
+            total_hours=0,
+            status=WorkloadPlan.Statuses.DRAFT
+        )
+
+    def build_xlsx_file(self, headers, rows, filename='import.xlsx'):
+
+        workbook = Workbook()
+        worksheet = workbook.active
+        worksheet.append(headers)
+
+        for row in rows:
+
+            worksheet.append(row)
+
+        buffer = BytesIO()
+        workbook.save(buffer)
+        buffer.seek(0)
+
+        return SimpleUploadedFile(
+            filename,
+            buffer.getvalue(),
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+
+    def test_study_master_can_import_teachers_successfully(self):
+
+        self.client.login(
+            email='import-study@example.com',
+            password='password'
+        )
+
+        upload = self.build_xlsx_file(
+            [
+                'ФИО',
+                'ученая степень',
+                'звание',
+                'ставка',
+                'максимальная нагрузка',
+                'контакты',
+            ],
+            [
+                [
+                    'Иванов Иван Иванович',
+                    'к.т.н.',
+                    'доцент',
+                    '1.0',
+                    '850',
+                    '+79990001122',
+                ]
+            ],
+            filename='teachers.xlsx'
+        )
+
+        preview_response = self.client.post(
+            '/imports/',
+            {
+                'action': 'preview',
+                'import_type': 'teachers',
+                'file': upload,
+            }
+        )
+
+        self.assertEqual(preview_response.status_code, 200)
+        self.assertContains(preview_response, 'Предварительная проверка')
+        self.assertContains(preview_response, 'Подтвердить импорт')
+
+        confirm_response = self.client.post(
+            '/imports/',
+            {
+                'action': 'confirm'
+            }
+        )
+
+        self.assertRedirects(
+            confirm_response,
+            '/imports/'
+        )
+
+        self.assertTrue(
+            Teacher.objects.filter(
+                full_name='Иванов Иван Иванович'
+            ).exists()
+        )
+
+        self.assertTrue(
+            ImportLog.objects.filter(
+                import_type='teachers',
+                result=ImportLog.Results.SUCCESS
+            ).exists()
+        )
+
+    def test_import_with_errors_does_not_create_subjects(self):
+
+        self.client.login(
+            email='import-study@example.com',
+            password='password'
+        )
+
+        upload = self.build_xlsx_file(
+            [
+                'название',
+                'код',
+                'семестр',
+                'трудоемкость',
+                'форма контроля',
+            ],
+            [
+                [
+                    'Программирование',
+                    '',
+                    '1',
+                    '144',
+                    'неверно',
+                ]
+            ],
+            filename='subjects.xlsx'
+        )
+
+        response = self.client.post(
+            '/imports/',
+            {
+                'action': 'preview',
+                'import_type': 'subjects',
+                'file': upload,
+            }
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Импорт не может быть выполнен')
+        self.assertFalse(
+            Subject.objects.filter(
+                name='Программирование'
+            ).exists()
+        )
+        self.assertTrue(
+            ImportLog.objects.filter(
+                import_type='subjects',
+                result=ImportLog.Results.FAILED
+            ).exists()
+        )
+
+    def test_access_rights_for_import_section(self):
+
+        self.client.login(
+            email='import-head@example.com',
+            password='password'
+        )
+
+        response = self.client.get('/imports/')
+
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, 'Проверить файл')
+
+        post_response = self.client.post(
+            '/imports/',
+            {
+                'action': 'confirm'
+            }
+        )
+
+        self.assertRedirects(
+            post_response,
+            '/imports/'
+        )
+
+        self.client.logout()
+
+        self.client.login(
+            email='import-teacher@example.com',
+            password='password'
+        )
+
+        response = self.client.get('/imports/')
+
+        self.assertEqual(response.status_code, 302)
+
+    def test_study_master_can_download_templates(self):
+
+        self.client.login(
+            email='import-study@example.com',
+            password='password'
+        )
+
+        response = self.client.get(
+            '/imports/templates/teachers/'
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response['Content-Type'],
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        self.assertIn(
+            'teachers_template.xlsx',
+            response['Content-Disposition']
+        )
+
+    def test_workload_import_updates_plan_total_hours(self):
+
+        self.client.login(
+            email='import-study@example.com',
+            password='password'
+        )
+
+        upload = self.build_xlsx_file(
+            [
+                'дисциплина',
+                'часы',
+                'семестр',
+            ],
+            [
+                ['Алгоритмы', '120', '1'],
+                ['Структуры данных', '90', '2'],
+            ],
+            filename='workload.xlsx'
+        )
+
+        preview_response = self.client.post(
+            '/imports/',
+            {
+                'action': 'preview',
+                'import_type': 'workload',
+                'plan': self.plan.id,
+                'file': upload,
+            }
+        )
+
+        self.assertEqual(preview_response.status_code, 200)
+        self.assertContains(preview_response, 'Подтвердить импорт')
+
+        self.client.post(
+            '/imports/',
+            {
+                'action': 'confirm'
+            }
+        )
+
+        self.plan.refresh_from_db()
+
+        self.assertEqual(
+            self.plan.total_hours,
+            210
+        )
+
+
+

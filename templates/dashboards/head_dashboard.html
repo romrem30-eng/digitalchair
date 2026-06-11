@@ -24,11 +24,7 @@
         position:relative;
     ">
 
-        <h3 style="font-weight:700;">
-
-            DigitalChair
-
-        </h3>
+        <h3 style="font-weight:700;">DigitalChair</h3>
 
         <hr style="border-color:rgba(255,255,255,0.1);">
 
@@ -57,6 +53,13 @@
             <a href="/notifications/"
                style="color:white;text-decoration:none;">
                 Уведомления
+            </a>
+        </p>
+
+        <p>
+            <a href="/imports/"
+               style="color:white;text-decoration:none;">
+                Результаты импорта
             </a>
         </p>
 
@@ -97,34 +100,23 @@
                     font-size:18px;
                     margin-right:12px;
                 ">
-
                     {{ request.user.email|first|upper }}
-
                 </div>
 
                 <div>
-
                     <div style="font-weight:600;font-size:14px;">
-
                         {{ request.user.email }}
-
                     </div>
-
                     <div style="font-size:12px;opacity:0.7;">
-
                         {{ request.user.role }}
-
                     </div>
-
                 </div>
 
             </div>
 
             <a href="/logout/"
                class="btn btn-outline-light w-100 mt-3">
-
                 Выйти
-
             </a>
 
         </div>
@@ -133,46 +125,37 @@
 
     <div class="p-5 w-100">
 
-        <h1 style="font-weight:700;">
-
-            Панель заведующего кафедрой
-
-        </h1>
+        <h1 style="font-weight:700;">Панель заведующего кафедрой</h1>
 
         <p style="color:#6b7280;">
-
-            Управление нагрузкой, поручениями и преподавателями кафедры.
-
+            Управление нагрузкой, поручениями и контроль результатов импорта.
         </p>
 
         <div class="d-flex gap-2 mt-3">
 
             <a href="/workload/"
                class="btn btn-outline-primary">
-
                 Распределение нагрузки
-
             </a>
 
             <a href="/assignments/"
                class="btn btn-primary">
-
                 Открыть поручения
+            </a>
 
+            <a href="/imports/"
+               class="btn btn-outline-secondary">
+                История импорта
             </a>
 
             <a href="/reports/"
                class="btn btn-outline-dark">
-
                 Отчеты
-
             </a>
 
             <a href="/2fa/setup/"
                class="btn btn-outline-secondary">
-
                 Настроить 2FA
-
             </a>
 
         </div>

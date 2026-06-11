@@ -1,5 +1,5 @@
-from django.db import models
 from django.conf import settings
+from django.db import models
 
 
 class Teacher(models.Model):
@@ -122,11 +122,8 @@ class WorkloadPlan(models.Model):
     class Statuses(models.TextChoices):
 
         DRAFT = 'DRAFT', 'Черновик'
-
         SUBMITTED = 'SUBMITTED', 'Отправлено'
-
         APPROVED = 'APPROVED', 'Утверждено'
-
         RETURNED = 'RETURNED', 'Возвращено'
 
     кафедра = models.CharField(
@@ -157,3 +154,53 @@ class WorkloadPlan(models.Model):
     def __str__(self):
 
         return f'{self.кафедра} ({self.academic_year})'
+
+
+class ImportLog(models.Model):
+
+    class ImportTypes(models.TextChoices):
+
+        TEACHERS = 'teachers', 'Преподаватели'
+        SUBJECTS = 'subjects', 'Дисциплины'
+        GROUPS = 'groups', 'Учебные группы'
+        WORKLOAD = 'workload', 'Учебный план нагрузки'
+
+    class Results(models.TextChoices):
+
+        SUCCESS = 'SUCCESS', 'Успешно'
+        FAILED = 'FAILED', 'С ошибками'
+
+    created_at = models.DateTimeField(
+        auto_now_add=True
+    )
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='import_logs'
+    )
+
+    import_type = models.CharField(
+        max_length=30,
+        choices=ImportTypes.choices
+    )
+
+    records_count = models.PositiveIntegerField(
+        default=0
+    )
+
+    result = models.CharField(
+        max_length=20,
+        choices=Results.choices
+    )
+
+    details = models.TextField(
+        blank=True
+    )
+
+    def __str__(self):
+
+        return (
+            f'{self.get_import_type_display()} - '
+            f'{self.get_result_display()}'
+        )

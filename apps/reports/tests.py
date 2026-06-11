@@ -230,3 +230,133 @@ class ReportsAccessTests(TestCase):
         self.assertEqual(response.context['teachers_count'], 2)
         self.assertEqual(response.context['subjects_count'], 2)
         self.assertEqual(response.context['groups_count'], 1)
+
+    def test_head_can_export_workload_summary_xlsx(self):
+
+        self.client.login(
+            email='reports-head@example.com',
+            password='password'
+        )
+
+        response = self.client.get('/reports/workload-summary/export/xlsx/')
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response['Content-Type'],
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        self.assertIn(
+            'workload_summary_',
+            response['Content-Disposition']
+        )
+
+    def test_teacher_can_export_own_teacher_plan_pdf(self):
+
+        self.client.login(
+            email='reports-teacher@example.com',
+            password='password'
+        )
+
+        response = self.client.get('/reports/teacher-workload/export/pdf/')
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response['Content-Type'],
+            'application/pdf'
+        )
+        self.assertIn(
+            'teacher_plan_',
+            response['Content-Disposition']
+        )
+
+    def test_admin_can_export_teacher_plan_docx(self):
+
+        self.client.login(
+            email='reports-admin@example.com',
+            password='password'
+        )
+
+        response = self.client.get(
+            '/reports/teacher-workload/export/docx/',
+            {
+                'teacher': self.second_teacher.id
+            }
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response['Content-Type'],
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        )
+        self.assertIn(
+            'teacher_plan_',
+            response['Content-Disposition']
+        )
+
+    def test_head_can_export_tasks_xlsx(self):
+
+        self.client.login(
+            email='reports-head@example.com',
+            password='password'
+        )
+
+        response = self.client.get('/reports/tasks/export/xlsx/')
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response['Content-Type'],
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        self.assertIn(
+            'tasks_report_',
+            response['Content-Disposition']
+        )
+
+    def test_study_master_cannot_export_tasks_xlsx(self):
+
+        self.client.login(
+            email='reports-study@example.com',
+            password='password'
+        )
+
+        response = self.client.get('/reports/tasks/export/xlsx/')
+
+        self.assertEqual(response.status_code, 302)
+
+    def test_study_master_can_export_contingent_xlsx(self):
+
+        self.client.login(
+            email='reports-study@example.com',
+            password='password'
+        )
+
+        response = self.client.get('/reports/contingent/export/xlsx/')
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response['Content-Type'],
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        self.assertIn(
+            'contingent_',
+            response['Content-Disposition']
+        )
+
+    def test_study_master_can_export_workload_execution_xlsx(self):
+
+        self.client.login(
+            email='reports-study@example.com',
+            password='password'
+        )
+
+        response = self.client.get('/reports/workload-execution/export/xlsx/')
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response['Content-Type'],
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        self.assertIn(
+            'workload_execution_',
+            response['Content-Disposition']
+        )

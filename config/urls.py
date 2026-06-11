@@ -5,11 +5,17 @@ from django.urls import path
 
 from apps.reports.views import (
     contingent_report_view,
+    contingent_export_view,
     report_center_view,
     tasks_report_view,
+    tasks_report_export_view,
     teacher_workload_report_view,
+    teacher_workload_docx_export_view,
+    teacher_workload_pdf_export_view,
     workload_execution_report_view,
-    workload_summary_report_view
+    workload_execution_export_view,
+    workload_summary_report_view,
+    workload_summary_export_view
 )
 from apps.assignments.views import (
     my_task_detail_view,
@@ -46,6 +52,8 @@ from apps.core.views import (
     workload_plan_detail_view,
     workload_plan_update_view,
     workload_plan_delete_view,
+    import_center_view,
+    import_template_download_view,
     study_directories_view,
     teacher_list_view,
     teacher_create_view,
@@ -115,20 +123,44 @@ urlpatterns = [
         workload_summary_report_view
     ),
     path(
+        'reports/workload-summary/export/xlsx/',
+        workload_summary_export_view
+    ),
+    path(
         'reports/teacher-workload/',
         teacher_workload_report_view
+    ),
+    path(
+        'reports/teacher-workload/export/docx/',
+        teacher_workload_docx_export_view
+    ),
+    path(
+        'reports/teacher-workload/export/pdf/',
+        teacher_workload_pdf_export_view
     ),
     path(
         'reports/workload-execution/',
         workload_execution_report_view
     ),
     path(
+        'reports/workload-execution/export/xlsx/',
+        workload_execution_export_view
+    ),
+    path(
         'reports/tasks/',
         tasks_report_view
     ),
     path(
+        'reports/tasks/export/xlsx/',
+        tasks_report_export_view
+    ),
+    path(
         'reports/contingent/',
         contingent_report_view
+    ),
+    path(
+        'reports/contingent/export/xlsx/',
+        contingent_export_view
     ),
 
     path(
@@ -186,6 +218,14 @@ path(
 path(
     'study-workload/plans/<int:pk>/delete/',
     workload_plan_delete_view
+),
+path(
+    'imports/',
+    import_center_view
+),
+path(
+    'imports/templates/<str:import_type>/',
+    import_template_download_view
 ),
 path(
     'study-directories/',

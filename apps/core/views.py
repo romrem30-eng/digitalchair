@@ -2,18 +2,26 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.decorators import user_passes_test
 from django.db.models import Sum
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.shortcuts import redirect
 from django.shortcuts import render
 from django.utils import timezone
 from django.views.decorators.cache import never_cache
 
+from apps.core.forms import ImportUploadForm
 from apps.core.forms import StudentGroupForm
 from apps.core.forms import SubjectForm
 from apps.core.forms import TeacherForm
 from apps.core.forms import WorkloadAssignmentForm
 from apps.core.forms import WorkloadPlanForm
+from apps.core.importers import IMPORT_DEFINITIONS
+from apps.core.importers import apply_import_preview
+from apps.core.importers import build_import_preview
+from apps.core.importers import build_template_workbook
+from apps.core.importers import get_template_filename
 from apps.core.models import StudentGroup
+from apps.core.models import ImportLog
 from apps.core.models import Subject
 from apps.core.models import Teacher
 from apps.core.models import WorkloadPlan
@@ -35,6 +43,14 @@ def is_teacher(user):
     return user.is_authenticated and user.role == 'TEACHER'
 
 
+def can_view_imports(user):
+
+    return user.is_authenticated and user.role in (
+        'STUDY_MASTER',
+        'HEAD',
+    )
+
+
 study_master_required = user_passes_test(
     is_study_master,
     login_url='/login/'
@@ -47,6 +63,11 @@ head_required = user_passes_test(
 
 teacher_required = user_passes_test(
     is_teacher,
+    login_url='/login/'
+)
+
+imports_view_required = user_passes_test(
+    can_view_imports,
     login_url='/login/'
 )
 
@@ -167,6 +188,67 @@ def build_distribution_context(plan, form):
         'total_hours': plan.total_hours,
         'is_approved': plan.status == WorkloadPlan.Statuses.APPROVED
     }
+
+
+def build_import_forms(bound_form=None, active_import_type=None):
+
+    forms = {}
+
+    for import_type, definition in IMPORT_DEFINITIONS.items():
+
+        if active_import_type == import_type and bound_form is not None:
+
+            forms[import_type] = bound_form
+
+        else:
+
+            forms[import_type] = ImportUploadForm(
+                initial={
+                    'import_type': import_type
+                },
+                import_type=import_type
+            )
+
+        forms[import_type].import_title = definition['title']
+        forms[import_type].import_type = import_type
+        forms[import_type].template_url = (
+            f'/imports/templates/{import_type}/'
+        )
+
+    return forms
+
+
+def build_import_history():
+
+    return ImportLog.objects.select_related('user').order_by(
+        '-created_at'
+    )[:20]
+
+
+def create_import_log(user, preview, result):
+
+    details = preview.get(
+        'summary',
+        ''
+    )
+
+    if preview.get('errors'):
+
+        error_details = '\n'.join(
+            preview['errors'][:10]
+        )
+
+        details = (
+            f'{details}\n{error_details}'
+        ).strip()
+
+    return ImportLog.objects.create(
+        user=user,
+        import_type=preview['import_type'],
+        records_count=preview.get('total_rows', 0),
+        result=result,
+        details=details
+    )
 
 
 @never_cache
@@ -572,6 +654,169 @@ def workload_plan_delete_view(request, pk):
             'plan': plan
         }
     )
+
+
+@login_required(login_url='/login/')
+@imports_view_required
+@never_cache
+def import_center_view(request):
+
+    preview = None
+    active_import_type = None
+    bound_form = None
+
+    if request.method == 'POST':
+
+        if request.user.role != 'STUDY_MASTER':
+
+            messages.error(
+                request,
+                'Загрузка файлов доступна только учебному мастеру.'
+            )
+
+            return redirect('/imports/')
+
+        action = request.POST.get(
+            'action',
+            'preview'
+        )
+
+        if action == 'confirm':
+
+            preview = request.session.get('import_preview')
+
+            if not preview:
+
+                messages.warning(
+                    request,
+                    'Сначала выполните предварительную проверку файла.'
+                )
+
+                return redirect('/imports/')
+
+            applied_count = apply_import_preview(preview)
+
+            preview['summary'] = (
+                f'Импорт выполнен успешно. '
+                f'Обработано записей: {applied_count}.'
+            )
+
+            create_import_log(
+                request.user,
+                preview,
+                ImportLog.Results.SUCCESS
+            )
+
+            request.session.pop(
+                'import_preview',
+                None
+            )
+
+            messages.success(
+                request,
+                'Импорт успешно завершен.'
+            )
+
+            return redirect('/imports/')
+
+        active_import_type = request.POST.get(
+            'import_type'
+        )
+
+        bound_form = ImportUploadForm(
+            request.POST,
+            request.FILES,
+            import_type=active_import_type
+        )
+
+        if bound_form.is_valid():
+
+            preview = build_import_preview(
+                active_import_type,
+                bound_form.cleaned_data['file'],
+                bound_form.cleaned_data.get('plan')
+            )
+
+            if preview['error_count']:
+
+                create_import_log(
+                    request.user,
+                    preview,
+                    ImportLog.Results.FAILED
+                )
+
+                request.session.pop(
+                    'import_preview',
+                    None
+                )
+
+                messages.warning(
+                    request,
+                    'Найдены ошибки. Импорт не выполнен.'
+                )
+
+            else:
+
+                request.session['import_preview'] = preview
+
+        else:
+
+            preview = {
+                'title': IMPORT_DEFINITIONS.get(
+                    active_import_type,
+                    {}
+                ).get(
+                    'title',
+                    'Импорт'
+                ),
+                'total_rows': 0,
+                'new_count': 0,
+                'update_count': 0,
+                'error_count': sum(
+                    len(errors)
+                    for errors in bound_form.errors.values()
+                ),
+                'errors': [
+                    f'{field}: {error}'
+                    for field, errors in bound_form.errors.items()
+                    for error in errors
+                ],
+            }
+
+    return render(
+        request,
+        'study/imports/index.html',
+        {
+            'import_forms': build_import_forms(
+                bound_form=bound_form,
+                active_import_type=active_import_type
+            ),
+            'preview': preview,
+            'history': build_import_history(),
+            'can_upload': request.user.role == 'STUDY_MASTER',
+        }
+    )
+
+
+@login_required(login_url='/login/')
+@study_master_required
+@never_cache
+def import_template_download_view(request, import_type):
+
+    if import_type not in IMPORT_DEFINITIONS:
+
+        return redirect('/imports/')
+
+    response = HttpResponse(
+        build_template_workbook(import_type),
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+
+    response['Content-Disposition'] = (
+        f'attachment; filename="{get_template_filename(import_type)}"'
+    )
+
+    return response
 
 
 @login_required(login_url='/login/')

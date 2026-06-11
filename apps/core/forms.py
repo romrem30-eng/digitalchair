@@ -1,4 +1,5 @@
 from django import forms
+from django.core.exceptions import ValidationError
 
 from apps.core.models import StudentGroup
 from apps.core.models import Subject
@@ -211,3 +212,88 @@ class WorkloadAssignmentForm(forms.Form):
         self.fields['teacher'].queryset = Teacher.objects.select_related(
             'user'
         ).order_by('full_name')
+
+
+class ImportUploadForm(forms.Form):
+
+    import_type = forms.CharField(
+        widget=forms.HiddenInput()
+    )
+
+    file = forms.FileField(
+        label='Файл XLSX',
+        widget=forms.ClearableFileInput(
+            attrs={
+                'class': 'form-control',
+                'accept': '.xlsx'
+            }
+        )
+    )
+
+    plan = forms.ModelChoiceField(
+        queryset=WorkloadPlan.objects.none(),
+        required=False,
+        label='План нагрузки',
+        widget=forms.Select(
+            attrs={
+                'class': 'form-select'
+            }
+        )
+    )
+
+    def __init__(self, *args, **kwargs):
+
+        import_type = kwargs.pop(
+            'import_type',
+            None
+        )
+
+        super().__init__(*args, **kwargs)
+
+        self.fields['plan'].queryset = WorkloadPlan.objects.order_by(
+            '-created_at'
+        )
+
+        current_import_type = (
+            import_type
+            or self.initial.get('import_type')
+            or self.data.get('import_type')
+        )
+
+        if current_import_type:
+
+            self.fields['import_type'].initial = current_import_type
+
+        if current_import_type != 'workload':
+
+            self.fields['plan'].widget = forms.HiddenInput()
+
+            self.fields['plan'].required = False
+
+    def clean_file(self):
+
+        uploaded_file = self.cleaned_data['file']
+
+        if not uploaded_file.name.lower().endswith('.xlsx'):
+
+            raise ValidationError(
+                'Поддерживаются только файлы XLSX.'
+            )
+
+        return uploaded_file
+
+    def clean(self):
+
+        cleaned_data = super().clean()
+
+        if (
+            cleaned_data.get('import_type') == 'workload'
+            and cleaned_data.get('plan') is None
+        ):
+
+            self.add_error(
+                'plan',
+                'Для импорта учебного плана нужно выбрать план нагрузки.'
+            )
+
+        return cleaned_data

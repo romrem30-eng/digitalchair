@@ -3,6 +3,17 @@
 {% block content %}
     <div class="bg-white border rounded-3 p-4 shadow-sm">
 
+        <div class="d-flex justify-content-end mb-3">
+
+            <a href="/reports/workload-execution/export/xlsx/{% if current_query_string %}?{{ current_query_string }}{% endif %}"
+               class="btn btn-outline-success">
+
+                Экспорт XLSX
+
+            </a>
+
+        </div>
+
         <form method="get"
               class="row g-3 align-items-end mb-4">
 
