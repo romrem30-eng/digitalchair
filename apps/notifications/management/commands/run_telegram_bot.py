@@ -1,3 +1,4 @@
+from asgiref.sync import sync_to_async
 from django.core.management.base import BaseCommand
 
 from apps.notifications.telegram import bind_user_to_telegram
@@ -6,11 +7,19 @@ from apps.notifications.telegram import build_start_message
 from apps.notifications.telegram import build_tasks_message
 from apps.notifications.telegram import complete_task_via_telegram
 from apps.notifications.telegram import get_telegram_bot_token
+from apps.users.models import User
 
 
 class Command(BaseCommand):
 
     help = 'Запускает Telegram-бота DigitalChair.'
+
+    @staticmethod
+    def get_user_by_telegram_id(telegram_id):
+
+        return User.objects.filter(
+            telegram_id=str(telegram_id)
+        ).first()
 
     def handle(self, *args, **options):
 
@@ -61,7 +70,10 @@ class Command(BaseCommand):
 
                 return
 
-            user, message = bind_user_to_telegram(
+            user, message = await sync_to_async(
+                bind_user_to_telegram,
+                thread_sensitive=True
+            )(
                 context.args[0],
                 update.effective_user.id
             )
@@ -76,11 +88,12 @@ class Command(BaseCommand):
 
         async def tasks_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
-            from apps.users.models import User
-
-            user = User.objects.filter(
-                telegram_id=str(update.effective_user.id)
-            ).first()
+            user = await sync_to_async(
+                self.get_user_by_telegram_id,
+                thread_sensitive=True
+            )(
+                update.effective_user.id
+            )
 
             if user is None:
 
@@ -90,17 +103,21 @@ class Command(BaseCommand):
 
                 return
 
-            await update.message.reply_text(
-                build_tasks_message(user)
-            )
+            message = await sync_to_async(
+                build_tasks_message,
+                thread_sensitive=True
+            )(user)
+
+            await update.message.reply_text(message)
 
         async def task_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
-            from apps.users.models import User
-
-            user = User.objects.filter(
-                telegram_id=str(update.effective_user.id)
-            ).first()
+            user = await sync_to_async(
+                self.get_user_by_telegram_id,
+                thread_sensitive=True
+            )(
+                update.effective_user.id
+            )
 
             if user is None:
 
@@ -130,7 +147,10 @@ class Command(BaseCommand):
 
                 return
 
-            _, message = complete_task_via_telegram(
+            _, message = await sync_to_async(
+                complete_task_via_telegram,
+                thread_sensitive=True
+            )(
                 user,
                 task_id
             )
